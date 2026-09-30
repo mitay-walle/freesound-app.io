@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Freesound App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand" title="Freesound App">Free<span>sound</span>.</div>
+  <form id="searchForm" class="searchform" autocomplete="off">
+    <span data-icon="search"></span>
+    <input id="q" type="search" placeholder="Что ищем? Например: rain loop -thunder   или   &quot;door slam&quot;" list="historyList" spellcheck="false">
+    <datalist id="historyList"></datalist>
+    <button type="submit" class="btn primary" id="searchBtn">Искать</button>
+  </form>
+  <nav class="tabs">
+    <button class="tab active" data-tab="search" data-icon="search">Поиск</button>
+    <button class="tab" data-tab="favorites" data-icon="heart">Избранное <span class="badge" id="favCount"></span></button>
+    <button class="tab" data-tab="blacklist" data-icon="ban">Чёрный список <span class="badge" id="blCount"></span></button>
+    <button class="tab" data-tab="downloads" data-icon="download">Загрузки</button>
+    <button class="tab" data-tab="settings" data-icon="sliders">Настройки</button>
+  </nav>
+  <div class="bar-right">
+    <div id="statusChip" class="chip" title="Состояние подключения к API"></div>
+    <div id="userBlock" class="userblock"></div>
+  </div>
+</header>
+
+<main>
+  <!-- ======================= SEARCH ======================= -->
+  <section id="view-search" class="view active">
+    <aside class="sidebar" id="filters">
+      <form id="filterForm">
+        <div class="side-head">
+          <h2>Фильтры</h2>
+          <div class="side-actions">
+            <button type="button" class="btn small ghost" id="resetFilters" title="Сбросить все фильтры">Сбросить</button>
+            <button type="submit" class="btn small primary">Применить</button>
+          </div>
+        </div>
+
+        <details open class="fgroup">
+          <summary>Слова и теги</summary>
+          <label>Исключить слова <small>(добавятся к запросу как -слово)</small>
+            <input type="text" id="f_exclude" placeholder="thunder, storm">
+          </label>
+          <label>Теги — обязательно
+            <div class="chips" id="f_tagsInc" data-placeholder="тег + Enter"></div>
+          </label>
+          <div class="ctl" id="c_tagsMode"></div>
+          <label>Теги — исключить
+            <div class="chips" id="f_tagsExc" data-placeholder="тег + Enter"></div>
+          </label>
+        </details>
+
+        <details open class="fgroup">
+          <summary>Категория</summary>
+          <label>Категория
+            <select id="f_cat"><option value="">Любая</option></select>
+          </label>
+          <label>Подкатегория
+            <select id="f_subcat" disabled><option value="">Любая</option></select>
+          </label>
+        </details>
+
+        <details open class="fgroup">
+          <summary>Формат и качество</summary>
+          <div class="ctl-label">Тип файла</div>
+          <div class="ctl" id="c_types"></div>
+          <div class="ctl-label">Каналы</div>
+          <div class="ctl" id="c_channels"></div>
+          <div class="ctl-label">Частота дискретизации</div>
+          <div class="ctl" id="c_sr"></div>
+          <div class="ctl-label">Разрядность</div>
+          <div class="ctl" id="c_bd"></div>
+          <div class="ctl-label">Размер файла</div>
+          <div class="ctl" id="c_size"></div>
+        </details>
+
+        <details open class="fgroup">
+          <summary>Длительность</summary>
+          <div class="ctl" id="c_dur"></div>
+          <div class="presets" id="durPresets"></div>
+        </details>
+
+        <details open class="fgroup">
+          <summary>Лицензия</summary>
+          <div class="ctl" id="c_lic"></div>
+          <button type="button" class="linklike" id="licCommercial" title="CC0 + Attribution">только для коммерческого использования</button>
+        </details>
+
+        <details class="fgroup">
+          <summary>Рейтинг и популярность</summary>
+          <div class="ctl-label">Рейтинг</div>
+          <div class="ctl" id="c_rating"></div>
+          <div class="ctl-label">Оценок не меньше</div>
+          <div class="ctl" id="c_numRatings"></div>
+          <div class="ctl-label">Скачиваний не меньше</div>
+          <div class="ctl" id="c_downloads"></div>
+        </details>
+
+        <details class="fgroup">
+          <summary>Дата загрузки</summary>
+          <div class="presets" id="datePresets"></div>
+          <div class="range"><input type="date" id="f_after"><span>—</span><input type="date" id="f_before"></div>
+        </details>
+
+        <details class="fgroup">
+          <summary>Автор, пак, прочее</summary>
+          <label>Только автор (точное имя) <input type="text" id="f_user" placeholder="InspectorJ"></label>
+          <label>Слово в названии пака <input type="text" id="f_pack" placeholder="foley"></label>
+          <div class="ctl-label">Геотег</div>
+          <div class="ctl" id="c_geo"></div>
+          <div class="ctl-label">Ремикс другого звука</div>
+          <div class="ctl" id="c_remix"></div>
+          <div class="ctl-label">Имеет ремиксы</div>
+          <div class="ctl" id="c_wasRemixed"></div>
+        </details>
+
+        <details class="fgroup">
+          <summary>Ритм и высота</summary>
+          <div class="ctl-label">Темп</div>
+          <div class="ctl" id="c_bpm"></div>
+          <div class="ctl-label">Нота</div>
+          <div class="ctl" id="c_note"></div>
+          <div class="ctl-label">Октава</div>
+          <div class="ctl" id="c_octave"></div>
+          <div class="ctl-label">Уверенность определения ноты не ниже</div>
+          <div class="ctl" id="c_noteConf"></div>
+          <div class="ctl-label">Тональность</div>
+          <div class="ctl" id="c_keyRoot"></div>
+          <div class="ctl" id="c_keyMode"></div>
+          <div class="ctl-label">Зацикливается (loopable)</div>
+          <div class="ctl" id="c_loop"></div>
+          <div class="ctl-label">Одно событие</div>
+          <div class="ctl" id="c_single"></div>
+          <div class="ctl-label">Реверберация</div>
+          <div class="ctl" id="c_reverb"></div>
+          <div class="ctl-label">Громкость не ниже</div>
+          <div class="ctl" id="c_loud"></div>
+        </details>
+
+        <details class="fgroup">
+          <summary>Любые аудио-дескрипторы</summary>
+          <p class="hint">Диапазоны по любому из ~70 признаков (тембр, спектр, громкость). Значения вычислены автоматически и не всегда точны.</p>
+          <div id="f_desc"></div>
+          <button type="button" class="btn small ghost" id="addDesc">+ Добавить дескриптор</button>
+        </details>
+
+        <details class="fgroup">
+          <summary>Похожие звуки</summary>
+          <label>ID звука-образца <input type="number" id="f_similarTo" min="1" placeholder="123456"></label>
+          <label>Пространство сходства <select id="f_simSpace"></select></label>
+          <p class="hint">Результаты сортируются по похожести на образец. Остальные фильтры продолжают действовать.</p>
+        </details>
+
+        <details class="fgroup">
+          <summary>Эксперт: Solr-фильтр</summary>
+          <label>Дополнительный фильтр <small>(добавляется к собранному)</small>
+            <textarea id="f_extra" rows="2" placeholder='например: spectral_centroid:[2000 TO *] -tag:loop'></textarea>
+          </label>
+          <label class="inline"><input type="checkbox" id="f_manual"> Ручной режим: использовать только текст ниже</label>
+          <textarea id="f_manualText" rows="3" placeholder='tag:rain duration:[10 TO 60] license:"Creative Commons 0"' disabled></textarea>
+          <label>Сортировка по цели <small>(field:value, …)</small>
+            <input type="text" id="f_sortTarget" placeholder="pitch:220,pitch_var:0">
+          </label>
+          <label>Веса полей <small>(weights)</small>
+            <input type="text" id="f_weights" placeholder="tag:4,description:3,username:1">
+          </label>
+          <div class="preview-box">
+            <div class="preview-label">Итоговый filter <button type="button" class="linklike" id="copyFilter">копировать</button></div>
+            <code id="filterPreview">—</code>
+          </div>
+        </details>
+
+        <div class="side-foot">
+          <button type="submit" class="btn primary wide">Применить фильтры</button>
+        </div>
+      </form>
+    </aside>
+
+    <div class="content">
+      <div id="modeBanner" class="banner hidden"></div>
+      <div class="toolbar">
+        <div class="tb-left">
+          <span id="resultCount" class="count">—</span>
+          <span id="hiddenCount" class="hidden-chip hidden"></span>
+        </div>
+        <div class="tb-right">
+          <label>Сортировка <select id="sort"></select></label>
+          <label>На странице
+            <select id="pageSize">
+              <option>15</option><option>30</option><option>50</option><option>100</option><option>150</option>
+            </select>
+          </label>
+          <label class="inline" title="Схлопнуть звуки из одного пака"><input type="checkbox" id="groupByPack"> по пакам</label>
+          <div class="seg" id="viewSeg">
+            <button type="button" data-view="list" class="active" title="Список" data-icon="list"></button>
+            <button type="button" data-view="grid" title="Сетка" data-icon="grid"></button>
+          </div>
+          <select id="savedSearches" title="Сохранённые поиски"><option value="">Сохранённые…</option></select>
+          <button type="button" class="btn small ghost" id="saveSearch" title="Сохранить текущий запрос и фильтры">Сохранить</button>
+          <button type="button" class="btn small ghost" id="toggleRequest" title="Показать URL запроса к API">URL</button>
+        </div>
+      </div>
+      <div id="requestBox" class="request-box hidden"></div>
+      <div id="results" class="results list"></div>
+      <div id="pager" class="pager"></div>
+    </div>
+  </section>
+
+  <!-- ======================= FAVORITES ======================= -->
+  <section id="view-favorites" class="view">
+    <div class="page">
+      <div class="page-head">
+        <h2>Избранное</h2>
+        <div class="row">
+          <input type="search" id="favFilter" placeholder="фильтр по названию/автору/тегу">
+          <button class="btn small ghost" id="favExport">Экспорт JSON</button>
+          <button class="btn small ghost" id="favDownloadAll" title="Скачать превью всех избранных">Скачать все превью</button>
+        </div>
+      </div>
+      <div id="favList" class="results list"></div>
+    </div>
+  </section>
+
+  <!-- ======================= BLACKLIST ======================= -->
+  <section id="view-blacklist" class="view">
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>Чёрный список</h2>
+          <p class="hint">Всё, что здесь, исключается из каждого запроса к API (<code>-username:(…) -tag:(…) -pack:(…)</code>, слова — как <code>-слово</code> в запросе), а то, что API не умеет отфильтровать, скрывается на клиенте. Блокировать можно прямо из карточки: значок запрета у автора, тега и пака или правый клик по карточке.</p>
+        </div>
+      </div>
+      <div class="ctl" id="c_blKind"></div>
+      <form id="blAddForm" class="row">
+        <input type="text" id="blValue" placeholder="username" required>
+        <input type="text" id="blNote" placeholder="заметка (необязательно)">
+        <button class="btn primary small" type="submit">Добавить</button>
+      </form>
+      <details class="fgroup">
+        <summary>Массовый импорт / экспорт</summary>
+        <textarea id="blBulk" rows="4" placeholder="по одному значению на строку"></textarea>
+        <div class="row">
+          <button class="btn small ghost" id="blImport">Импортировать в текущий раздел</button>
+          <button class="btn small ghost" id="blExport">Экспорт JSON</button>
+          <button class="btn small ghost" id="blCopy">Скопировать список</button>
+        </div>
+      </details>
+      <div class="row">
+        <input type="search" id="blFilter" placeholder="поиск по списку">
+        <span class="hint" id="blInfo"></span>
+      </div>
+      <table class="table" id="blTable">
+        <thead><tr><th id="blColName">Автор</th><th>Заметка</th><th>Добавлен</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ======================= DOWNLOADS ======================= -->
+  <section id="view-downloads" class="view">
+    <div class="page">
+      <div class="page-head">
+        <h2>Загрузки</h2>
+        <div class="row">
+          <span class="hint" id="dlDir"></span>
+          <button class="btn small ghost" id="dlOpenFolder">Открыть папку</button>
+        </div>
+      </div>
+      <table class="table" id="dlTable">
+        <thead><tr><th>Звук</th><th>Автор</th><th>Лицензия</th><th>Вид</th><th>Размер</th><th>Когда</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ======================= SETTINGS ======================= -->
+  <section id="view-settings" class="view">
+    <div class="page narrow">
+      <h2>Настройки</h2>
+      <form id="settingsForm">
+        <fieldset>
+          <legend>Аккаунт Freesound</legend>
+          <div id="oauthStatus" class="hint"></div>
+          <div class="row">
+            <button type="button" class="btn small primary" id="oauthConnect"><span data-icon="log-in"></span> Войти через Freesound</button>
+            <button type="button" class="btn small ghost" id="oauthLogout">Выйти</button>
+            <button type="button" class="btn small ghost" id="openOnboarding">Пошаговая настройка</button>
+          </div>
+          <p class="hint">Вход открывает окно Freesound, где нужно разрешить доступ приложению. После этого доступны скачивание оригиналов и ваш профиль; токен обновляется сам.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Ключи API</legend>
+          <p class="hint">Создаются один раз на <a href="https://freesound.org/apiv2/apply" target="_blank" rel="noopener">freesound.org/apiv2/apply</a>. В поле <b>Callback URL</b> формы Freesound укажите: <span class="copyline"><span id="redirectUri"></span><button type="button" class="icon-btn" id="copyRedirect" title="Скопировать"><span data-icon="copy"></span></button></span></p>
+          <label>Client ID <input type="text" id="s_clientId" autocomplete="off" spellcheck="false"></label>
+          <label>Client secret / API key
+            <div class="secret"><input type="password" id="s_clientSecret" autocomplete="off"><button type="button" class="btn small ghost eye" data-for="s_clientSecret" title="Показать"><span data-icon="eye"></span></button></div>
+          </label>
+          <details class="plain">
+            <summary>Если Freesound показал код вместо перенаправления</summary>
+            <p class="hint">Так бывает, когда в Callback URL указан <code>http://freesound.org/home/app_permissions/permission_granted/</code>. Скопируйте код со страницы Freesound и вставьте сюда.</p>
+            <div class="row">
+              <input type="text" id="oauthCode" placeholder="код авторизации">
+              <button type="button" class="btn small ghost" id="oauthManual">Обменять код</button>
+            </div>
+          </details>
+        </fieldset>
+
+        <fieldset>
+          <legend>Загрузки и воспроизведение</legend>
+          <label>Папка для скачивания <input type="text" id="s_downloadDir"></label>
+          <div class="row3">
+            <label>Качество превью
+              <select id="s_previewQuality">
+                <option value="hq-mp3">MP3 ~128 kbps</option>
+                <option value="lq-mp3">MP3 ~64 kbps</option>
+                <option value="hq-ogg">OGG ~192 kbps</option>
+                <option value="lq-ogg">OGG ~80 kbps</option>
+              </select>
+            </label>
+            <label>Результатов на странице <input type="number" id="s_pageSize" min="1" max="150"></label>
+          </div>
+          <label class="inline"><input type="checkbox" id="s_attributionLog"> Вести файл _attribution.txt в папке загрузок (для лицензий CC BY)</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Чёрный список</legend>
+          <label class="inline"><input type="checkbox" id="s_blacklistServerSide"> Исключать на стороне API (рекомендуется)</label>
+          <label>Максимум записей одного вида в запросе <input type="number" id="s_blacklistMaxServerSide" min="1" max="2000"></label>
+          <p class="hint">Остальные (если список длиннее) скрываются на клиенте.</p>
+        </fieldset>
+
+        <div class="row">
+          <button type="submit" class="btn primary">Сохранить настройки</button>
+          <button type="button" class="btn ghost" id="checkUsage">Проверить лимиты API</button>
+          <span id="usageInfo" class="hint"></span>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- ======================= PLAYER ======================= -->
+<footer id="player" class="player empty">
+  <button class="pbtn" id="pPlay" title="Play / Pause (Space)"><span data-icon="play"></span></button>
+  <div class="pinfo">
+    <div class="ptitle"><a href="#" id="pTitle" data-action="detail">Ничего не играет</a></div>
+    <div class="psub" id="pSub"></div>
+  </div>
+  <div class="pwave" id="pWave" title="Клик — перемотка">
+    <div class="wave-fill base" id="pWaveBase"></div>
+    <div class="wave-fill prog" id="pWaveProg"></div>
+    <div class="phead" id="pHead"></div>
+  </div>
+  <div class="ptime" id="pTime">0:00 / 0:00</div>
+  <button class="pbtn small" id="pLoop" title="Повтор"><span data-icon="repeat"></span></button>
+  <button class="pbtn small" id="pAuto" title="Автоматически играть следующий"><span data-icon="skip"></span></button>
+  <input type="range" id="pVol" min="0" max="1" step="0.02" value="0.8" title="Громкость">
+  <div class="pactions" id="pActions"></div>
+</footer>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" id="modalClose" title="Закрыть (Esc)"><span data-icon="x"></span></button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+<div id="ctxmenu" class="ctxmenu hidden"></div>
+<div id="toasts"></div>
+<audio id="audio" preload="none"></audio>
+
+<script src="/fields.js"></script>
+<script src="/controls.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

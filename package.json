@@ -1,0 +1,15 @@
+{
+  "name": "freesound-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local web app for browsing Freesound.org with advanced search and an author blacklist",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node server.js --mock"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

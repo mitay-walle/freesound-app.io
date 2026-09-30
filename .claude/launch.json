@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "freesound-app",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 8765
+    },
+    {
+      "name": "freesound-app-mock",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js", "--mock"],
+      "port": 8765
+    }
+  ]
+}
