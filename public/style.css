@@ -512,11 +512,20 @@ details.plain[open] > summary::before { content: "– "; }
 .toast .x { background: transparent; color: var(--muted); padding: 0 4px; font-size: 16px; line-height: 1; }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } }
 
-@media (max-width: 1500px) {
-  .topbar { grid-template-columns: minmax(0, 1fr) minmax(460px, 620px) minmax(0, 1fr); gap: 12px; }
-  .tab { padding: 0 7px; }
-  .tab .ic { display: none; }
+@media (max-width: 1750px) {
+  .topbar { grid-template-columns: minmax(0, 1fr) minmax(460px, 680px) minmax(0, 1fr); gap: 12px; }
+  .tab { min-width: 38px; padding: 0 8px; justify-content: center; }
+  .tab-label { display: none; }
+  .tab .ic { display: block; width: 16px; height: 16px; }
+  .tab.active::after { left: 8px; right: 8px; }
+  .tabs { gap: 0; flex: none; }
+  .header-right { gap: 8px; overflow: hidden; }
   .bar-right { gap: 8px; }
+}
+@media (max-width: 1350px) {
+  .topbar { grid-template-columns: minmax(0, 1fr) minmax(400px, 560px) minmax(0, 1fr); }
+  .userbtn { gap: 6px; }
+  .userbtn .avatar { width: 28px; height: 28px; }
 }
 @media (max-width: 1200px) {
   .pinfo { width: 160px; }
