@@ -212,6 +212,20 @@
       if (language === 'ko') return '한도를 가져오지 못했습니다: ' + match[1];
       return 'Failed to get limits: ' + match[1];
     }
+
+    match = /^· токен действует до (.+), обновляется автоматически$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '· 令牌有效期至 ' + match[1] + '，将自动续期';
+      if (language === 'ko') return '· 토큰 유효 기간: ' + match[1] + ', 자동 갱신';
+      return '· token valid until ' + match[1] + ', renews automatically';
+    }
+
+    match = /^Вход не удался: (.+)$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '登录失败：' + match[1];
+      if (language === 'ko') return '로그인 실패: ' + match[1];
+      return 'Sign-in failed: ' + match[1];
+    }
     return value;
   }
 
@@ -278,6 +292,7 @@
     if (select && select.value !== language) select.value = language;
     translateTree(document.body);
     applyTheme(document.documentElement.dataset.theme || 'dark', false);
+    window.dispatchEvent(new CustomEvent('fs-language-changed', { detail: { language } }));
   }
 
   function setSidebarWidth(value, persist = true) {

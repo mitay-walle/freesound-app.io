@@ -28,7 +28,7 @@
     return `${m}:${String(r).padStart(2, '0')}`;
   };
   const fmtSize = (b) => (b == null ? '' : b < 1024 * 1024 ? (b / 1024).toFixed(0) + ' KB' : (b / 1024 / 1024).toFixed(1) + ' MB');
-  const fmtNum = (n) => (n == null ? '' : Number(n).toLocaleString('ru-RU'));
+  const fmtNum = (n) => (n == null ? '' : Number(n).toLocaleString(document.documentElement.lang || 'ru-RU'));
   const chStr = (c) => (c === 1 ? 'моно' : c === 2 ? 'стерео' : c ? c + ' кан.' : '');
   const licShort = (l) => (l === 'Creative Commons 0' ? 'CC0' : l === 'Attribution' ? 'CC BY' : l === 'Attribution NonCommercial' ? 'CC BY-NC' : l || '');
   const licClass = (l) => (l === 'Creative Commons 0' ? 'cc0' : l === 'Attribution' ? 'by' : l === 'Attribution NonCommercial' ? 'nc' : '');
@@ -1949,6 +1949,8 @@
       : `${ic('info', 'sm')} Не выполнен вход. ${S.status.hasApiKey ? 'Поиск и превью работают по ключу API, оригиналы недоступны.' : 'Нужны ключи API (ниже) или пошаговая настройка.'}`;
     $('#oauthLogout').classList.toggle('hidden', !o.connected);
   }
+
+  window.addEventListener('fs-language-changed', renderAuthStatus);
 
   async function saveSettings(e) {
     e.preventDefault();
