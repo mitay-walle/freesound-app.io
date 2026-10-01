@@ -10,6 +10,7 @@
     sidebarCollapsed: 'fs_sidebar_collapsed',
     contrast: 'fs_ui_contrast',
     visibility: 'fs_ui_visibility',
+    disclaimer: 'fs_freesound_disclaimer_v1',
   };
   const DEFAULT_ACCENT = '#3d7bff';
   const DEFAULT_SIDEBAR = 322;
@@ -411,6 +412,34 @@
     applyVisibility(readVisibility(), false);
   }
 
+  function bindFirstRunDisclaimer() {
+    if (localStorage.getItem(STORAGE.disclaimer) === '1') return;
+    const modal = $('#firstRunDisclaimer');
+    const title = $('#firstRunDisclaimerTitle');
+    const text = $('#firstRunDisclaimerText');
+    const accept = $('#acceptFirstRunDisclaimer');
+    if (!modal || !title || !text || !accept) return;
+
+    if (language === 'en') {
+      title.textContent = 'About this app';
+      text.innerHTML = '<p><b>This is an unofficial, non-commercial client for the Freesound API.</b></p>' +
+        '<p>The site is not monetized and its author receives no financial benefit from operating it.</p>' +
+        '<p>This site is not part of Freesound and is not affiliated with Music Technology Group / Universitat Pompeu Fabra.</p>' +
+        '<p>Data and sounds are loaded from Freesound; use of the API and sounds is governed by Freesound terms and the license of each individual sound.</p>';
+      const link = modal.querySelector('a');
+      if (link) link.textContent = 'Open Freesound';
+      accept.textContent = 'Got it';
+    }
+
+    const close = () => {
+      localStorage.setItem(STORAGE.disclaimer, '1');
+      modal.classList.add('hidden');
+    };
+    accept.addEventListener('click', close, { once: true });
+    modal.classList.remove('hidden');
+    accept.focus();
+  }
+
   function bindTheme() {
     const button = $('#themeToggle');
     if (!button) return;
@@ -435,6 +464,7 @@
   bindTheme();
   bindSettings();
   applyLanguage(language, false);
+  bindFirstRunDisclaimer();
   observer.observe(document.body, { childList: true, subtree: true });
 
   window.FSUI = { applyTheme, applyAccent, applyContrast, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
