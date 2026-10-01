@@ -8,11 +8,15 @@
     language: 'fs_ui_language',
     sidebarWidth: 'fs_sidebar_width',
     sidebarCollapsed: 'fs_sidebar_collapsed',
+    contrast: 'fs_ui_contrast',
+    visibility: 'fs_ui_visibility',
   };
   const DEFAULT_ACCENT = '#3d7bff';
   const DEFAULT_SIDEBAR = 322;
   const MIN_SIDEBAR = 240;
   const MAX_SIDEBAR = 600;
+  const DEFAULT_CONTRAST = 100;
+  const UI_PARTS = ['waveform', 'technical', 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions'];
 
   const EN = new Map(Object.entries({
     'Поиск': 'Search',
@@ -90,6 +94,22 @@
     'Интерфейс': 'Interface',
     'Язык': 'Language',
     'Акцентный цвет': 'Accent color',
+    'Контраст': 'Contrast',
+    'Элементы результата поиска': 'Search result elements',
+    'Тех. параметры': 'Technical details',
+    'Скачивания': 'Downloads',
+    'Комментарии': 'Comments',
+    'Лицензия': 'License',
+    'Дата': 'Date',
+    'Пак': 'Pack',
+    'Категория': 'Category',
+    'Теги': 'Tags',
+    'Описание': 'Description',
+    'Действия справа': 'Right-side actions',
+    'Пресеты фильтров…': 'Filter presets…',
+    'К дефолту': 'Defaults',
+    'Сохранить как основной поиск': 'Save as main search',
+    'Импорт JSON': 'Import JSON',
     'Аккаунт Freesound': 'Freesound account',
     'Войти через Freesound': 'Sign in with Freesound',
     'Выйти': 'Sign out',
@@ -187,6 +207,47 @@
     if (label) label.textContent = accent;
   }
 
+  function readVisibility() {
+    let stored = {};
+    try { stored = JSON.parse(localStorage.getItem(STORAGE.visibility) || '{}'); } catch (_) { stored = {}; }
+    const result = {};
+    UI_PARTS.forEach((part) => { result[part] = stored[part] !== false; });
+    return result;
+  }
+
+  function applyVisibility(next, persist = true) {
+    const visibility = { ...readVisibility(), ...(next || {}) };
+    UI_PARTS.forEach((part) => {
+      document.documentElement.classList.toggle('hide-ui-' + part, visibility[part] === false);
+      const input = document.querySelector(`[data-ui-part="${part}"]`);
+      if (input) input.checked = visibility[part] !== false;
+    });
+    if (persist) localStorage.setItem(STORAGE.visibility, JSON.stringify(visibility));
+  }
+
+  function applyContrast(value, persist = true) {
+    const contrast = clamp(Number(value) || DEFAULT_CONTRAST, 60, 140);
+    const scale = contrast / 100;
+    const light = document.documentElement.dataset.theme === 'light';
+    const bg = light ? '#f3f4f7' : '#1b1b1e';
+    const text = light ? '#20232a' : '#f1f1f3';
+    const card2Base = light ? .06 : .07;
+    const card3Base = light ? .10 : .11;
+    const lineBase = light ? .14 : .08;
+    const mutedBase = light ? .55 : .45;
+    const dimBase = light ? .38 : .28;
+    document.documentElement.style.setProperty('--card-2', mix(bg, text, Math.min(.30, card2Base * scale)));
+    document.documentElement.style.setProperty('--card-3', mix(bg, text, Math.min(.36, card3Base * scale)));
+    document.documentElement.style.setProperty('--line', mix(bg, text, Math.min(.40, lineBase * scale)));
+    document.documentElement.style.setProperty('--muted', mix(bg, text, Math.min(.82, mutedBase * scale)));
+    document.documentElement.style.setProperty('--dim', mix(bg, text, Math.min(.68, dimBase * scale)));
+    if (persist) localStorage.setItem(STORAGE.contrast, String(contrast));
+    const input = $('#s_contrast');
+    const label = $('#contrastValue');
+    if (input && Number(input.value) !== contrast) input.value = String(contrast);
+    if (label) label.textContent = contrast + '%';
+  }
+
   function themeIcon(theme) {
     if (theme === 'dark') return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
     return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
@@ -202,6 +263,7 @@
       button.title = language === 'en' ? 'Light / dark theme' : 'Светлая / тёмная тема';
     }
     applyAccent(localStorage.getItem(STORAGE.accent) || DEFAULT_ACCENT);
+    applyContrast(localStorage.getItem(STORAGE.contrast) || DEFAULT_CONTRAST, false);
   }
 
   function translateValue(value) {
@@ -328,6 +390,7 @@
   function bindSettings() {
     const accent = $('#s_accent');
     const lang = $('#s_language');
+    const contrast = $('#s_contrast');
     if (accent) {
       accent.value = normalizeHex(localStorage.getItem(STORAGE.accent) || DEFAULT_ACCENT);
       accent.addEventListener('input', () => applyAccent(accent.value));
@@ -337,6 +400,15 @@
       lang.value = language;
       lang.addEventListener('change', () => applyLanguage(lang.value));
     }
+    if (contrast) {
+      contrast.value = localStorage.getItem(STORAGE.contrast) || String(DEFAULT_CONTRAST);
+      contrast.addEventListener('input', () => applyContrast(contrast.value));
+      contrast.addEventListener('change', () => applyContrast(contrast.value));
+    }
+    document.querySelectorAll('[data-ui-part]').forEach((input) => {
+      input.addEventListener('change', () => applyVisibility({ [input.dataset.uiPart]: input.checked }));
+    });
+    applyVisibility(readVisibility(), false);
   }
 
   function bindTheme() {
@@ -358,11 +430,12 @@
   setSidebarWidth(localStorage.getItem(STORAGE.sidebarWidth) || DEFAULT_SIDEBAR, false);
   setSidebarCollapsed(localStorage.getItem(STORAGE.sidebarCollapsed) === '1', false);
   applyTheme(localStorage.getItem(STORAGE.theme) || 'dark', false);
+  applyVisibility(readVisibility(), false);
   bindSidebar();
   bindTheme();
   bindSettings();
   applyLanguage(language, false);
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.FSUI = { applyTheme, applyAccent, applyLanguage, setSidebarWidth, setSidebarCollapsed };
+  window.FSUI = { applyTheme, applyAccent, applyContrast, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
 })();
