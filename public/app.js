@@ -2151,43 +2151,27 @@
     if (typing) return;
 
     const selected = () => selectedSound();
-    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-    else if (e.key === '/') { e.preventDefault(); $('#q').focus(); $('#q').select(); }
-    else if (e.altKey && e.key === 'ArrowRight') {
+    if (e.code === 'Space') {
+      e.preventDefault(); togglePlay();
+    } else if (e.altKey && e.key === 'ArrowRight') {
       e.preventDefault();
       const pages = S.results ? Math.ceil((S.results.count || 0) / S.pageSize) : 0;
       if (S.page < pages) { runSearch(S.page + 1); $('#view-search .content').scrollTop = 0; }
     } else if (e.altKey && e.key === 'ArrowLeft') {
       e.preventDefault();
       if (S.page > 1) { runSearch(S.page - 1); $('#view-search .content').scrollTop = 0; }
-    } else if (e.shiftKey && e.key === 'ArrowRight') {
-      e.preventDefault(); playNext(1);
-    } else if (e.shiftKey && e.key === 'ArrowLeft') {
-      e.preventDefault(); playNext(-1);
     } else if (S.view === 'grid' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault(); moveGridSelection(e.key);
-    } else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 'j') {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault(); moveSelection(1);
-    } else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'k') {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault(); moveSelection(-1);
-    } else if (e.key === 'Home' && S.currentList.length) {
-      e.preventDefault(); selectSound(S.currentList[0]);
-    } else if (e.key === 'End' && S.currentList.length) {
-      e.preventDefault(); selectSound(S.currentList[S.currentList.length - 1]);
     } else if (e.key === 'Enter' && selected()) {
       e.preventDefault(); playSound(selected());
     } else if (e.key.toLowerCase() === 'r' && selected()) {
       e.preventDefault(); replaySound(selected());
     } else if (e.shiftKey && e.key.toLowerCase() === 'd' && selected()) {
       e.preventDefault(); download(selected(), 'original');
-    } else if (e.key.toLowerCase() === 'd' && selected()) {
-      e.preventDefault(); download(selected(), previewQuality());
-    } else if (e.key.toLowerCase() === 'f' && selected()) {
-      e.preventDefault(); toggleFav(selected());
-    } else if (e.key.toLowerCase() === 'c' && selected()) {
-      e.preventDefault(); openComment(selected());
-    } else if (/^[1-5]$/.test(e.key) && selected()) {
-      e.preventDefault(); submitRating(selected(), Number(e.key));
     }
   });
 
