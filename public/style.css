@@ -234,7 +234,7 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 #filterPreview { display: block; white-space: pre-wrap; word-break: break-all; background: transparent; padding: 4px 0 0; color: var(--text); }
 
 /* ---------- toolbar / results ---------- */
-.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; background: var(--card); padding: 8px 12px; }
+.toolbar { position: sticky; top: 0; z-index: 8; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; background: var(--card); padding: 8px 12px; box-shadow: 0 1px 0 var(--line), 0 8px 18px rgba(0, 0, 0, .08); }
 .tb-left { display: flex; align-items: center; gap: 10px; }
 .tb-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .tb-right label { margin: 0; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
