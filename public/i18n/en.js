@@ -165,6 +165,12 @@ window.FSI18N.en = {
     "API подключён": "API connected",
     "Нет ключа API": "No API key",
     "Открыть Freesound": "Open Freesound",
-    "Понятно": "Got it"
+    "Понятно": "Got it",
+    "Избранное — кнопка": "Favorite — button",
+    "Оценить — кнопка": "Rate — button",
+    "Комментарий — кнопка": "Comment — button",
+    "Оригинал — кнопка": "Original — button",
+    "Похожие — кнопка": "Similar — button",
+    "Freesound — кнопка": "Freesound — button"
   }
 };

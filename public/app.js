@@ -887,12 +887,12 @@
         ${s.n_from_same_pack ? `<div class="ui-part ui-pack"><a href="#" data-action="morepack" data-uri="${esc(s.more_from_same_pack)}">+${esc(s.n_from_same_pack)} из того же пака</a></div>` : ''}
       </div>
       <div class="card-actions ui-part ui-actions">
-        <button type="button" data-action="fav" class="icon-btn heart ${isFav ? 'on' : ''}" title="${isFav ? 'Убрать из избранного' : 'В избранное'}">${ic('heart', '', isFav)}</button>
-        <button type="button" data-action="rate" class="icon-btn" title="Оценить звук">${ic('star')}</button>
-        <button type="button" data-action="comment" class="icon-btn" title="Написать комментарий">${ic('comment')}</button>
-        <button type="button" data-action="dl-original" class="icon-btn" title="Скачать оригинал (нужен вход)">${ic('download')}<small>orig</small></button>
-        <button type="button" data-action="similar" class="icon-btn" title="Похожие звуки">${ic('shuffle')}</button>
-        <a href="${esc(s.url || '#')}" target="_blank" rel="noopener" class="icon-btn" title="Открыть на freesound.org">${ic('external')}</a>
+        <button type="button" data-action="fav" class="icon-btn heart ui-part ui-action-favorite ${isFav ? 'on' : ''}" title="${isFav ? 'Убрать из избранного' : 'В избранное'}">${ic('heart', '', isFav)}</button>
+        <button type="button" data-action="rate" class="icon-btn ui-part ui-action-rate" title="Оценить звук">${ic('star')}</button>
+        <button type="button" data-action="comment" class="icon-btn ui-part ui-action-comment" title="Написать комментарий">${ic('comment')}</button>
+        <button type="button" data-action="dl-original" class="icon-btn ui-part ui-action-original" title="Скачать оригинал (нужен вход)">${ic('download')}<small>orig</small></button>
+        <button type="button" data-action="similar" class="icon-btn ui-part ui-action-similar" title="Похожие звуки">${ic('shuffle')}</button>
+        <a href="${esc(s.url || '#')}" target="_blank" rel="noopener" class="icon-btn ui-part ui-action-freesound" title="Открыть на freesound.org">${ic('external')}</a>
       </div>
     </article>`;
   }

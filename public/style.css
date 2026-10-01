@@ -311,7 +311,16 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .hide-ui-category .ui-category,
 .hide-ui-tags .ui-tags,
 .hide-ui-description .ui-description,
-.hide-ui-actions .ui-actions { display: none !important; }
+.hide-ui-actions .ui-actions,
+.hide-ui-action-favorite .ui-action-favorite,
+.hide-ui-action-rate .ui-action-rate,
+.hide-ui-action-comment .ui-action-comment,
+.hide-ui-action-original .ui-action-original,
+.hide-ui-action-similar .ui-action-similar,
+.hide-ui-action-freesound .ui-action-freesound { display: none !important; }
+
+.visibility-checks .visibility-sub { padding-left: 14px; color: var(--dim); }
+.visibility-checks .visibility-sub input { opacity: .9; }
 
 .pager { position: sticky; bottom: 0; z-index: 7; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 48px; margin: 10px -22px 0 -12px; padding: 8px 22px 8px 12px; background: var(--card); box-shadow: 0 -1px 0 var(--line), 0 -8px 20px rgba(0, 0, 0, .10); }
 .pager button { background: var(--card); border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); font-weight: 500; }

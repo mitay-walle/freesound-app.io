@@ -17,7 +17,7 @@
   const MIN_SIDEBAR = 240;
   const MAX_SIDEBAR = 600;
   const DEFAULT_CONTRAST = 100;
-  const UI_PARTS = ['waveform', 'technical', 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions'];
+  const UI_PARTS = ['waveform', 'technical', 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions', 'action-favorite', 'action-rate', 'action-comment', 'action-original', 'action-similar', 'action-freesound'];
 
   const I18N = window.FSI18N || {};
   const SUPPORTED_LANGUAGES = ['ru', 'en', 'zh', 'ko'];
