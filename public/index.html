@@ -24,6 +24,7 @@
     <button class="tab" data-tab="settings" data-icon="sliders">Настройки</button>
   </nav>
   <div class="bar-right">
+    <button type="button" class="icon-btn theme-toggle" id="themeToggle" title="Светлая / тёмная тема" aria-label="Светлая / тёмная тема"><span data-icon="moon"></span></button>
     <div id="statusChip" class="chip" title="Состояние подключения к API"></div>
     <div id="userBlock" class="userblock"></div>
   </div>
@@ -290,15 +291,9 @@
         <button type="submit" form="settingsForm" class="btn small primary">Сохранить</button>
       </div>
       <form id="settingsForm">
-        <fieldset>
+        <fieldset class="settings-section interface-settings">
           <legend>Интерфейс</legend>
-          <div class="row3 ui-settings-grid">
-            <label>Тема
-              <select id="s_theme">
-                <option value="dark">Тёмная</option>
-                <option value="light">Светлая</option>
-              </select>
-            </label>
+          <div class="settings-grid">
             <label>Язык
               <select id="s_language">
                 <option value="ru">Русский</option>
@@ -309,11 +304,7 @@
               <div class="color-setting"><input type="color" id="s_accent" value="#3d7bff"><span id="accentValue">#3d7bff</span></div>
             </label>
           </div>
-          <label>Ширина фильтров
-            <div class="sidebar-width-setting"><input type="range" id="s_sidebarWidth" min="240" max="600" step="1"><span id="sidebarWidthValue"></span></div>
-          </label>
-          <label class="inline"><input type="checkbox" id="s_sidebarCollapsed"> Скрыть панель фильтров</label>
-          <p class="hint">Параметры интерфейса сохраняются в этом браузере.</p>
+          <p class="hint">Тема и панель фильтров меняются прямо в основном интерфейсе.</p>
         </fieldset>
         <fieldset>
           <legend>Аккаунт Freesound</legend>
@@ -367,8 +358,7 @@
           <p class="hint">Остальные (если список длиннее) скрываются на клиенте.</p>
         </fieldset>
 
-        <div class="row">
-          <button type="submit" class="btn primary">Сохранить настройки</button>
+        <div class="settings-footer">
           <button type="button" class="btn ghost" id="checkUsage">Проверить лимиты API</button>
           <span id="usageInfo" class="hint"></span>
         </div>
