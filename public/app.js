@@ -839,9 +839,10 @@
   async function openDetail(id) {
     openModal('<div class="loading">Загрузка…</div>');
     try {
-      const { data: s } = await api(`/sounds/${id}/`);
-      const cached = S.soundCache.get(s.id) || {};
-      S.soundCache.set(s.id, { ...cached, ...s });
+      const { data } = await api(`/sounds/${id}/`);
+      const cached = S.soundCache.get(Number(id)) || {};
+      const s = { ...cached, ...data };
+      S.soundCache.set(s.id, s);
       const isFav = S.favSet.has(s.id);
       const blocked = isBlocked(s.username);
       const packId = packIdFrom(s.pack);
