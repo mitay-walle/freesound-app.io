@@ -1533,7 +1533,8 @@
     S.favorites = sounds || [];
     S.favSet = new Set(S.favorites.map((s) => s.id));
     S.favorites.forEach((s) => { if (!S.soundCache.has(s.id)) S.soundCache.set(s.id, s); });
-    $('#favCount').textContent = S.favorites.length || '';
+    const favCount = $('#favCount');
+    if (favCount) favCount.textContent = S.favorites.length || '';
   }
 
   async function toggleFav(s) {
