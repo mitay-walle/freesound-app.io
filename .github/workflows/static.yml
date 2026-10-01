@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -R public/. _site/
-          sed -i 's|href="/style.css"|href="./style.css"|' _site/index.html
+          sed -i 's|href="/style.css"|href="./style.css?v=3"|' _site/index.html
           sed -i 's|src="/fields.js"|src="./fields.js"|' _site/index.html
           sed -i 's|src="/controls.js"|src="./controls.js"|' _site/index.html
           sed -i 's|src="/app.js"|src="./static-adapter.js?v=2"></script><script src="./app.js"|' _site/index.html
