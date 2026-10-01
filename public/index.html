@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Freesound App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="./style.css?v=5">
 </head>
 <body>
 
@@ -37,6 +37,7 @@
         <div class="side-head">
           <h2>Фильтры</h2>
           <div class="side-actions">
+            <button type="button" class="icon-btn filter-collapse" id="collapseFilters" title="Свернуть фильтры" aria-label="Свернуть фильтры" data-icon="chevron-left"></button>
             <button type="button" class="btn small ghost" id="resetFilters" title="Сбросить все фильтры">Сбросить</button>
             <button type="submit" class="btn small primary">Применить</button>
           </div>
@@ -181,11 +182,13 @@
         </div>
       </form>
     </aside>
+    <div class="sidebar-resizer" id="sidebarResizer" role="separator" aria-orientation="vertical" aria-label="Изменить ширину фильтров" tabindex="0"></div>
 
     <div class="content">
       <div id="modeBanner" class="banner hidden"></div>
       <div class="toolbar">
         <div class="tb-left">
+          <button type="button" class="icon-btn filters-expand hidden" id="expandFilters" title="Показать фильтры" aria-label="Показать фильтры" data-icon="chevron-right"></button>
           <span id="resultCount" class="count">—</span>
           <span id="hiddenCount" class="hidden-chip hidden"></span>
         </div>
@@ -281,9 +284,37 @@
 
   <!-- ======================= SETTINGS ======================= -->
   <section id="view-settings" class="view">
-    <div class="page narrow">
-      <h2>Настройки</h2>
+    <div class="page narrow settings-page">
+      <div class="settings-sticky">
+        <h2>Настройки</h2>
+        <button type="submit" form="settingsForm" class="btn small primary">Сохранить</button>
+      </div>
       <form id="settingsForm">
+        <fieldset>
+          <legend>Интерфейс</legend>
+          <div class="row3 ui-settings-grid">
+            <label>Тема
+              <select id="s_theme">
+                <option value="dark">Тёмная</option>
+                <option value="light">Светлая</option>
+              </select>
+            </label>
+            <label>Язык
+              <select id="s_language">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+            <label>Акцентный цвет
+              <div class="color-setting"><input type="color" id="s_accent" value="#3d7bff"><span id="accentValue">#3d7bff</span></div>
+            </label>
+          </div>
+          <label>Ширина фильтров
+            <div class="sidebar-width-setting"><input type="range" id="s_sidebarWidth" min="240" max="600" step="1"><span id="sidebarWidthValue"></span></div>
+          </label>
+          <label class="inline"><input type="checkbox" id="s_sidebarCollapsed"> Скрыть панель фильтров</label>
+          <p class="hint">Параметры интерфейса сохраняются в этом браузере.</p>
+        </fieldset>
         <fieldset>
           <legend>Аккаунт Freesound</legend>
           <div id="oauthStatus" class="hint"></div>
@@ -375,8 +406,9 @@
 <div id="toasts"></div>
 <audio id="audio" preload="none"></audio>
 
-<script src="/fields.js"></script>
-<script src="/controls.js"></script>
-<script src="/app.js"></script>
+<script src="./fields.js?v=5"></script>
+<script src="./controls.js?v=5"></script>
+<script src="./static-adapter.js?v=3"></script>
+<script src="./app.js?v=5"></script>
 </body>
 </html>
