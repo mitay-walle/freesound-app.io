@@ -16,17 +16,19 @@
     <datalist id="historyList"></datalist>
     <button type="submit" class="btn primary" id="searchBtn">Искать</button>
   </form>
-  <nav class="tabs">
-    <button class="tab active" data-tab="search" data-icon="search">Поиск</button>
-    <button class="tab" data-tab="favorites" data-icon="heart">Избранное <span class="badge" id="favCount"></span></button>
-    <button class="tab" data-tab="blacklist" data-icon="ban">Чёрный список <span class="badge" id="blCount"></span></button>
-    <button class="tab" data-tab="downloads" data-icon="download">Загрузки</button>
-    <button class="tab" data-tab="settings" data-icon="sliders">Настройки</button>
-  </nav>
-  <div class="bar-right">
-    <button type="button" class="icon-btn theme-toggle" id="themeToggle" title="Светлая / тёмная тема" aria-label="Светлая / тёмная тема"><span data-icon="moon"></span></button>
-    <div id="statusChip" class="chip" title="Состояние подключения к API"></div>
-    <div id="userBlock" class="userblock"></div>
+  <div class="header-right">
+    <nav class="tabs">
+      <button class="tab active" data-tab="search" data-icon="search">Поиск</button>
+      <button class="tab" data-tab="favorites" data-icon="heart">Избранное <span class="badge" id="favCount"></span></button>
+      <button class="tab" data-tab="blacklist" data-icon="ban">Чёрный список <span class="badge" id="blCount"></span></button>
+      <button class="tab" data-tab="downloads" data-icon="download">Загрузки</button>
+      <button class="tab" data-tab="settings" data-icon="sliders">Настройки</button>
+    </nav>
+    <div class="bar-right">
+      <button type="button" class="icon-btn theme-toggle" id="themeToggle" title="Светлая / тёмная тема" aria-label="Светлая / тёмная тема"><span data-icon="moon"></span></button>
+      <div id="statusChip" class="chip" title="Состояние подключения к API"></div>
+      <div id="userBlock" class="userblock"></div>
+    </div>
   </div>
 </header>
 
@@ -426,6 +428,9 @@
           <div class="settings-doc-links"><a href="https://freesound.org/docs/api/resources_apiv2.html" target="_blank" rel="noopener">Usage resource ↗</a><a href="https://freesound.org/docs/api/" target="_blank" rel="noopener">API documentation ↗</a><a href="https://freesound.org/apiv2/apply" target="_blank" rel="noopener">API credentials ↗</a></div>
         </fieldset>
       </form>
+      <div class="settings-bottom-sticky">
+        <button type="submit" form="settingsForm" class="btn primary">Сохранить настройки</button>
+      </div>
     </div>
   </section>
 </main>
