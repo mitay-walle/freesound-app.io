@@ -364,7 +364,7 @@
   function addDescRow(d = { field: 'brightness' }) {
     const row = document.createElement('div');
     row.className = 'desc-row';
-    row.innerHTML = `<select class="d-field">${fieldOptionsHtml(d.field)}</select><button type="button" class="icon-btn d-del" title="убрать">${ic('x')}</button><div class="d-inputs"></div>`;
+    row.innerHTML = `<select class="d-field">${fieldOptionsHtml(d.field)}</select><button type="button" class="icon-btn d-reset" title="Сбросить дескриптор">${ic('rotate-ccw')}</button><button type="button" class="icon-btn d-del" title="убрать">${ic('x')}</button><div class="d-inputs"></div>`;
     const box = row.querySelector('.d-inputs');
     const mount = (field, dd) => {
       box.innerHTML = '';
@@ -395,6 +395,7 @@
     };
     mount(d.field, d);
     row.querySelector('.d-field').addEventListener('change', (e) => { mount(e.target.value, {}); updateFilterPreview(); });
+    row.querySelector('.d-reset').addEventListener('click', () => { mount(row.querySelector('.d-field').value, {}); updateFilterPreview(); });
     row.querySelector('.d-del').addEventListener('click', () => { row.remove(); updateFilterPreview(); });
     $('#f_desc').appendChild(row);
     return row;
@@ -468,6 +469,123 @@
     setVal('#f_extra', f.extra); $('#f_manual').checked = Boolean(f.manual); setVal('#f_manualText', f.manualText); $('#f_manualText').disabled = !f.manual;
     setVal('#f_sortTarget', f.sortTarget); setVal('#f_weights', f.weights);
     updateFilterPreview();
+  }
+
+  const filterResetEntries = [];
+
+  function afterFilterReset() {
+    updateFilterPreview();
+    renderModeBanner();
+    const presets = $('#filterPresets');
+    if (presets) presets.value = '';
+  }
+
+  function createFilterResetButton(className, title) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.title = title;
+    button.setAttribute('aria-label', title);
+    button.innerHTML = ic('rotate-ccw', 'sm');
+    return button;
+  }
+
+  function registerFilterReset(id, reset, { visible = true } = {}) {
+    const target = $('#' + id);
+    if (!target) return;
+    const entry = { id, target, reset };
+    filterResetEntries.push(entry);
+    if (!visible) return;
+
+    const button = createFilterResetButton('filter-reset-field', 'Сбросить поле к значению по умолчанию');
+    button.dataset.resetTarget = id;
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      reset();
+      afterFilterReset();
+    });
+
+    const label = target.closest('label');
+    const previous = target.previousElementSibling;
+    if (label && label.closest('#filterForm')) {
+      label.classList.add('filter-reset-host');
+      label.appendChild(button);
+    } else if (previous && previous.classList.contains('ctl-label')) {
+      previous.classList.add('filter-reset-label');
+      previous.appendChild(button);
+    } else if (target.parentElement && target.parentElement.classList.contains('range')) {
+      button.classList.add('filter-reset-range');
+      target.insertAdjacentElement('afterend', button);
+    } else {
+      const wrap = document.createElement('div');
+      wrap.className = 'filter-reset-standalone';
+      target.parentNode.insertBefore(wrap, target);
+      wrap.appendChild(target);
+      wrap.appendChild(button);
+    }
+  }
+
+  function setupFilterResetButtons() {
+    filterResetEntries.length = 0;
+
+    registerFilterReset('f_exclude', () => setVal('#f_exclude', ''));
+    registerFilterReset('f_tagsInc', () => chips.inc.set([]));
+    registerFilterReset('c_tagsMode', () => C.tagsMode.set('all'));
+    registerFilterReset('f_tagsExc', () => chips.exc.set([]));
+    registerFilterReset('f_cat', () => { setVal('#f_cat', ''); fillSubcats(); });
+    registerFilterReset('f_subcat', () => setVal('#f_subcat', ''));
+    registerFilterReset('c_types', () => C.types.set([]));
+    registerFilterReset('c_channels', () => C.channels.set(''));
+    registerFilterReset('c_sr', () => C.sr.set([]));
+    registerFilterReset('c_bd', () => C.bd.set([]));
+    registerFilterReset('c_size', () => C.size.set('', ''));
+    registerFilterReset('c_dur', () => C.dur.set('', ''));
+    registerFilterReset('c_lic', () => C.lic.set([]));
+    registerFilterReset('c_rating', () => C.rating.set(''));
+    registerFilterReset('c_numRatings', () => C.numRatings.set(''));
+    registerFilterReset('c_downloads', () => C.downloads.set(''));
+    registerFilterReset('f_after', () => setVal('#f_after', ''));
+    registerFilterReset('f_before', () => setVal('#f_before', ''));
+    registerFilterReset('f_user', () => setVal('#f_user', ''));
+    registerFilterReset('f_pack', () => setVal('#f_pack', ''));
+    registerFilterReset('c_geo', () => C.geo.set(''));
+    registerFilterReset('c_remix', () => C.remix.set(''));
+    registerFilterReset('c_wasRemixed', () => C.wasRemixed.set(''));
+    registerFilterReset('c_bpm', () => C.bpm.set('', ''));
+    registerFilterReset('c_note', () => C.note.set(''));
+    registerFilterReset('c_octave', () => C.octave.set(''));
+    registerFilterReset('c_noteConf', () => C.noteConf.set(''));
+    registerFilterReset('c_keyRoot', () => C.keyRoot.set(''));
+    registerFilterReset('c_keyMode', () => C.keyMode.set(''));
+    registerFilterReset('c_loop', () => C.loop.set(''));
+    registerFilterReset('c_single', () => C.single.set(''));
+    registerFilterReset('c_reverb', () => C.reverb.set(''));
+    registerFilterReset('c_loud', () => C.loud.set(''));
+    registerFilterReset('f_desc', () => { $('#f_desc').innerHTML = ''; }, { visible: false });
+    registerFilterReset('f_similarTo', () => setVal('#f_similarTo', ''));
+    registerFilterReset('f_simSpace', () => setVal('#f_simSpace', ''));
+    registerFilterReset('f_extra', () => setVal('#f_extra', ''));
+    registerFilterReset('f_manual', () => { $('#f_manual').checked = false; $('#f_manualText').disabled = true; });
+    registerFilterReset('f_manualText', () => setVal('#f_manualText', ''));
+    registerFilterReset('f_sortTarget', () => setVal('#f_sortTarget', ''));
+    registerFilterReset('f_weights', () => setVal('#f_weights', ''));
+
+    $$('#filterForm details.fgroup').forEach((section) => {
+      const summary = section.querySelector(':scope > summary');
+      if (!summary) return;
+      summary.classList.add('filter-summary-reset-host');
+      const button = createFilterResetButton('filter-reset-section', 'Сбросить всю секцию к значениям по умолчанию');
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        filterResetEntries.forEach((entry) => {
+          if (section.contains(entry.target)) entry.reset();
+        });
+        afterFilterReset();
+      });
+      summary.appendChild(button);
+    });
   }
 
   function buildFilter(f) {
@@ -1638,6 +1756,7 @@
     $$('#datePresets button').forEach((b) => b.addEventListener('click', () => { setVal('#f_after', b.dataset.days ? dateIso(Number(b.dataset.days)) : ''); setVal('#f_before', ''); updateFilterPreview(); }));
     chips.inc = makeChips($('#f_tagsInc'));
     chips.exc = makeChips($('#f_tagsExc'));
+    setupFilterResetButtons();
     $('#addDesc').addEventListener('click', () => { addDescRow(); updateFilterPreview(); });
     $('#f_manual').addEventListener('change', (e) => {
       $('#f_manualText').disabled = !e.target.checked;
