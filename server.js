@@ -902,6 +902,20 @@ async function handleLocal(req, res, url) {
     }
   }
 
+  if (p === '/attribution') {
+    const settings = await getSettings();
+    const file = path.join(settings.downloadDir, '_attribution.txt');
+    if (method === 'GET') {
+      let content = '';
+      try { content = await fsp.readFile(file, 'utf8'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+      return sendJson(res, 200, { content, exists: Boolean(content), bytes: Buffer.byteLength(content) });
+    }
+    if (method === 'DELETE') {
+      try { await fsp.unlink(file); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+      return sendJson(res, 200, { content: '', exists: false, bytes: 0 });
+    }
+  }
+
   if (p === '/downloads' && method === 'GET') {
     return sendJson(res, 200, await readJson(FILES.downloads, EMPTY_LIST('items')));
   }
