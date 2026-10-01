@@ -307,6 +307,8 @@
               <select id="s_language">
                 <option value="ru">Русский</option>
                 <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="ko">한국어</option>
               </select>
             </label>
             <label>Акцентный цвет
@@ -345,11 +347,13 @@
             <button type="button" class="btn small ghost" id="openOnboarding">Пошаговая настройка</button>
           </div>
           <p class="hint">Вход открывает окно Freesound, где нужно разрешить доступ приложению. После этого доступны скачивание оригиналов и ваш профиль; токен обновляется сам.</p>
+          <div class="settings-doc-links"><a href="https://freesound.org/docs/api/authentication.html" target="_blank" rel="noopener">Authentication docs ↗</a><a href="https://freesound.org/docs/api/resources_apiv2.html" target="_blank" rel="noopener">API resources ↗</a></div>
         </fieldset>
 
         <fieldset>
           <legend>Ключи API</legend>
           <p class="hint">Создаются один раз на <a href="https://freesound.org/apiv2/apply" target="_blank" rel="noopener">freesound.org/apiv2/apply</a>. В поле <b>Callback URL</b> формы Freesound укажите: <span class="copyline"><span id="redirectUri"></span><button type="button" class="icon-btn" id="copyRedirect" title="Скопировать"><span data-icon="copy"></span></button></span></p>
+          <div class="settings-doc-links"><a href="https://freesound.org/docs/api/" target="_blank" rel="noopener">API documentation ↗</a><a href="https://freesound.org/docs/api/authentication.html" target="_blank" rel="noopener">Token / OAuth2 ↗</a><a href="https://freesound.org/docs/api/terms_of_use.html" target="_blank" rel="noopener">API Terms of Use ↗</a></div>
           <label>Client ID <input type="text" id="s_clientId" autocomplete="off" spellcheck="false"></label>
           <label>Client secret / API key
             <div class="secret"><input type="password" id="s_clientSecret" autocomplete="off"><button type="button" class="btn small ghost eye" data-for="s_clientSecret" title="Показать"><span data-icon="eye"></span></button></div>
@@ -366,7 +370,14 @@
 
         <fieldset>
           <legend>Загрузки и воспроизведение</legend>
-          <label>Папка для скачивания <input type="text" id="s_downloadDir"></label>
+          <label>Папка для скачивания
+            <div class="download-folder-setting">
+              <input type="text" id="s_downloadDir">
+              <button type="button" class="btn small ghost hidden" id="chooseDownloadFolder">Выбрать папку…</button>
+              <button type="button" class="btn small ghost hidden" id="clearDownloadFolder">Стандартная папка браузера</button>
+            </div>
+            <span class="hint" id="downloadFolderHint"></span>
+          </label>
           <div class="row3">
             <label>Качество превью
               <select id="s_previewQuality">
@@ -378,7 +389,14 @@
             </label>
             <label>Результатов на странице <input type="number" id="s_pageSize" min="1" max="150"></label>
           </div>
-          <label class="inline"><input type="checkbox" id="s_attributionLog"> Вести файл _attribution.txt в папке загрузок (для лицензий CC BY)</label>
+          <label class="inline"><input type="checkbox" id="s_attributionLog"> Вести _attribution.txt для скачанных звуков</label>
+          <div class="attribution-actions">
+            <button type="button" class="btn small ghost" id="attributionView">Просмотреть</button>
+            <button type="button" class="btn small ghost" id="attributionCopy">Копировать</button>
+            <button type="button" class="btn small ghost" id="attributionDownload">Скачать _attribution.txt</button>
+            <button type="button" class="btn small danger" id="attributionClear">Очистить</button>
+            <span class="hint" id="attributionInfo"></span>
+          </div>
         </fieldset>
 
         <fieldset>
@@ -388,10 +406,19 @@
           <p class="hint">Остальные (если список длиннее) скрываются на клиенте.</p>
         </fieldset>
 
-        <div class="settings-footer">
-          <button type="button" class="btn ghost" id="checkUsage">Проверить лимиты API</button>
-          <span id="usageInfo" class="hint"></span>
-        </div>
+        <fieldset class="api-limits-section">
+          <legend>Лимиты Freesound API</legend>
+          <p class="hint">Freesound считает два окна: <b>burst</b> — запросы за последнюю минуту, <b>sustained</b> — запросы за последние 24 часа. Ограничения применяются на уровне пользователя Freesound, поэтому запросы из нескольких API-клиентов одного аккаунта суммируются. Сам endpoint <code>/usage/</code> не расходует лимит.</p>
+          <div class="api-limit-grid">
+            <div class="api-limit-card"><span>Последняя минута</span><strong id="usageBurst">— / —</strong><small>Burst</small></div>
+            <div class="api-limit-card"><span>Последние 24 часа</span><strong id="usageSustained">— / —</strong><small>Sustained</small></div>
+          </div>
+          <div class="row api-limit-actions">
+            <button type="button" class="btn ghost" id="checkUsage">Обновить лимиты</button>
+            <span id="usageInfo" class="hint"></span>
+          </div>
+          <div class="settings-doc-links"><a href="https://freesound.org/docs/api/resources_apiv2.html" target="_blank" rel="noopener">Usage resource ↗</a><a href="https://freesound.org/docs/api/" target="_blank" rel="noopener">API documentation ↗</a><a href="https://freesound.org/apiv2/apply" target="_blank" rel="noopener">API credentials ↗</a></div>
+        </fieldset>
       </form>
     </div>
   </section>
@@ -417,18 +444,18 @@
   <div class="pactions" id="pActions"></div>
 </footer>
 
-<div id="firstRunDisclaimer" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="firstRunDisclaimerTitle">
+<div id="firstRunDisclaimer" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="firstRunDisclaimerTitle" data-i18n-ignore>
   <div class="modal-box narrow disclaimer-box">
-    <h2 id="firstRunDisclaimerTitle">О приложении</h2>
+    <h2 id="firstRunDisclaimerTitle">About this app</h2>
     <div id="firstRunDisclaimerText" class="disclaimer-text">
-      <p><b>Это неофициальный некоммерческий клиент Freesound API.</b></p>
-      <p>Сайт не монетизируется, его автор не получает финансовой выгоды от его работы.</p>
-      <p>Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra.</p>
-      <p>Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.</p>
+      <p><b>This is an unofficial, non-commercial client for the Freesound API.</b></p>
+      <p>The site is not monetized, and its author receives no financial benefit from operating it.</p>
+      <p>This site is not part of Freesound and is not affiliated with Music Technology Group / Universitat Pompeu Fabra.</p>
+      <p>Data and sounds are loaded from Freesound. Use of the API and individual sounds is governed by Freesound's terms and by the license attached to each sound.</p>
     </div>
     <div class="row disclaimer-actions">
-      <a class="btn ghost" href="https://freesound.org/" target="_blank" rel="noopener">Открыть Freesound</a>
-      <button type="button" class="btn primary" id="acceptFirstRunDisclaimer">Понятно</button>
+      <a class="btn ghost" href="https://freesound.org/" target="_blank" rel="noopener">Open Freesound</a>
+      <button type="button" class="btn primary" id="acceptFirstRunDisclaimer">Got it</button>
     </div>
   </div>
 </div>
@@ -445,6 +472,10 @@
 
 <script src="./fields.js?v=5"></script>
 <script src="./controls.js?v=5"></script>
+<script src="./i18n/ru.js"></script>
+<script src="./i18n/en.js"></script>
+<script src="./i18n/zh.js"></script>
+<script src="./i18n/ko.js"></script>
 <script src="./ui-prefs.js?v=6"></script>
 <script src="./static-adapter.js?v=3"></script>
 <script src="./app.js?v=11"></script>
