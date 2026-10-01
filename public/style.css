@@ -414,6 +414,12 @@ legend { padding: 0; color: var(--muted); font-size: 11px; letter-spacing: .3px;
 .modal { position: fixed; inset: 0; background: rgba(10, 10, 12, .7); z-index: 50; display: flex; align-items: flex-start; justify-content: center; padding: 36px 16px; overflow-y: auto; }
 .modal-box { background: var(--card); width: min(960px, 100%); position: relative; padding: 22px 26px 26px; box-shadow: var(--shadow); }
 .modal-box.narrow { width: min(640px, 100%); }
+.disclaimer-modal { z-index: 90; align-items: center; }
+.disclaimer-box { max-width: 620px; }
+.disclaimer-text { color: var(--text); line-height: 1.6; }
+.disclaimer-text p { margin: 0 0 10px; }
+.disclaimer-text p:last-child { margin-bottom: 0; }
+.disclaimer-actions { justify-content: flex-end; margin-top: 18px; }
 .modal-close { position: absolute; top: 12px; right: 12px; background: transparent; border: 0; color: var(--muted); cursor: pointer; line-height: 0; padding: 6px; }
 .modal-close:hover { color: var(--text); background: var(--card-3); }
 .modal h2 { margin-right: 30px; }
