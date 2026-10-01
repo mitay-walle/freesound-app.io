@@ -6,6 +6,7 @@
   --card: #1b1b1e;
   --card-2: #2b2b30;
   --card-3: #33333a;
+  --toolbar-bg: #202024;
   --line: #2e2e34;
   --text: #f1f1f3;
   --muted: #8d8d97;
@@ -196,13 +197,13 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 ::-webkit-scrollbar-thumb:hover { background: #45454d; }
 
 /* ---------- filters sidebar ---------- */
-.side-head { position: sticky; top: -14px; z-index: 9; display: flex; align-items: center; justify-content: space-between; min-height: 48px; margin: -14px -12px 8px -18px; padding: 8px 12px 8px 18px; background: var(--bg); box-shadow: 0 1px 0 var(--line); }
+.side-head { position: sticky; top: -14px; z-index: 9; display: flex; align-items: center; justify-content: space-between; min-height: 48px; margin: -14px -12px 8px -18px; padding: 8px 12px 8px 18px; background: var(--toolbar-bg); box-shadow: 0 1px 0 var(--line); }
 .side-head h2 { font-size: 13px; margin: 0; color: var(--muted); font-weight: 500; }
 .side-actions { display: flex; gap: 6px; }
 .filter-preset-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px; margin: 0 0 9px; }
 .filter-preset-tools select { padding-top: 5px; padding-bottom: 5px; }
 .filter-preset-tools .icon-btn { width: 30px; min-width: 30px; font-size: 18px; }
-.side-foot { position: sticky; bottom: -24px; z-index: 9; margin: 12px -12px -24px -18px; padding: 10px 12px 24px 18px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
+.side-foot { position: sticky; bottom: -24px; z-index: 9; margin: 12px -12px -24px -18px; padding: 10px 12px 24px 18px; display: flex; flex-direction: column; gap: 6px; background: var(--toolbar-bg); box-shadow: 0 -1px 0 var(--line); }
 .main-search-status { margin: 0; min-height: 16px; }
 .fgroup { background: var(--card); margin: 0 0 8px; }
 .fgroup > summary { cursor: pointer; padding: 9px 12px; font-weight: 500; font-size: 12.5px; color: var(--text); list-style: none; display: flex; align-items: center; user-select: none; position: relative; }
@@ -240,7 +241,7 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 #filterPreview { display: block; white-space: pre-wrap; word-break: break-all; background: transparent; padding: 4px 0 0; color: var(--text); }
 
 /* ---------- toolbar / results ---------- */
-.toolbar { position: sticky; top: 0; z-index: 8; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0; background: var(--card); padding: 8px 12px; box-shadow: 0 1px 0 var(--line), 0 10px 22px rgba(0, 0, 0, .13); }
+.toolbar { position: sticky; top: 0; z-index: 8; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 -22px 0 -12px; background: var(--toolbar-bg); padding: 8px 22px 8px 12px; box-shadow: 0 1px 0 var(--line), 0 12px 22px rgba(0, 0, 0, .18); }
 .tb-left { display: flex; align-items: center; gap: 10px; }
 .tb-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .tb-right label { margin: 0; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
@@ -328,8 +329,8 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .visibility-checks .visibility-sub { padding-left: 14px; color: var(--dim); }
 .visibility-checks .visibility-sub input { opacity: .9; }
 
-.pager { position: sticky; bottom: 0; z-index: 7; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 48px; margin: 10px -22px 0 -12px; padding: 8px 22px 8px 12px; background: var(--card); box-shadow: 0 -1px 0 var(--line), 0 -8px 20px rgba(0, 0, 0, .10); }
-.pager button { background: var(--card); border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); font-weight: 500; }
+.pager { position: sticky; bottom: 0; z-index: 7; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 48px; margin: 10px -22px 0 -12px; padding: 8px 22px 8px 12px; background: var(--toolbar-bg); box-shadow: 0 -1px 0 var(--line); }
+.pager button { background: transparent; border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); font-weight: 500; }
 .pager button:hover:not(:disabled) { color: var(--text); background: var(--card-3); }
 .pager button.active { background: var(--accent); color: #fff; }
 .pager button:disabled { opacity: .35; cursor: default; }
@@ -357,8 +358,8 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 /* ---------- settings ---------- */
 fieldset { border: 0; background: var(--card); padding: 14px 18px 16px; margin: 12px 0; }
 .settings-page { padding-top: 0; padding-bottom: 0; scroll-padding-bottom: 72px; }
-.settings-sticky { position: sticky; top: 0; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; margin: 0 -26px 14px; padding: 0 26px; background: var(--bg); box-shadow: 0 1px 0 var(--line); }
-.settings-bottom-sticky { position: sticky; bottom: 0; z-index: 9; display: flex; justify-content: flex-end; min-height: 58px; margin: 14px -26px 0; padding: 10px 26px 14px; background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
+.settings-sticky { position: sticky; top: 0; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; margin: 0 -26px 14px; padding: 0 26px; background: var(--toolbar-bg); box-shadow: 0 1px 0 var(--line), 0 12px 22px rgba(0, 0, 0, .16); }
+.settings-bottom-sticky { position: sticky; bottom: 0; z-index: 9; display: flex; justify-content: flex-end; min-height: 58px; margin: 14px -26px 0; padding: 10px 26px 14px; background: var(--toolbar-bg); box-shadow: 0 -1px 0 var(--line); }
 .settings-sticky h2 { margin: 0; }
 .settings-section { margin-top: 0; }
 .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
@@ -427,7 +428,7 @@ fieldset { border: 0; background: var(--card); padding: 14px 18px 16px; margin: 
 #settingsForm .secret input { flex: 1 1 auto; width: auto; }
 #settingsForm .copyline { max-width: 100%; }
 #settingsForm .copyline > span { min-width: 0; overflow-wrap: anywhere; }
-.settings-sticky { margin: 0 0 14px; padding: 0; }
+.settings-sticky { margin: 0 -26px 14px; padding: 0 26px; }
 .settings-section { margin-top: 0; }
 
 legend { padding: 0; color: var(--muted); font-size: 11px; letter-spacing: .3px; text-transform: uppercase; float: left; width: 100%; margin-bottom: 6px; }
@@ -614,6 +615,7 @@ html[data-theme="light"] {
   --card: #f3f4f7;
   --card-2: #e5e7ed;
   --card-3: #d8dbe4;
+  --toolbar-bg: #e9ebf0;
   --line: #c8ccd6;
   --text: #20232a;
   --muted: #606876;
