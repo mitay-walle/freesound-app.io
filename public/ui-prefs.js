@@ -9,6 +9,7 @@
     sidebarWidth: 'fs_sidebar_width',
     sidebarCollapsed: 'fs_sidebar_collapsed',
     contrast: 'fs_ui_contrast',
+    waveformContrast: 'fs_ui_waveform_contrast',
     visibility: 'fs_ui_visibility',
     disclaimer: 'fs_freesound_disclaimer_v1',
   };
@@ -17,6 +18,7 @@
   const MIN_SIDEBAR = 240;
   const MAX_SIDEBAR = 600;
   const DEFAULT_CONTRAST = 100;
+  const DEFAULT_WAVEFORM_CONTRAST = 100;
   const UI_PARTS = ['waveform', 'technical', 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions', 'action-favorite', 'action-rate', 'action-comment', 'action-original', 'action-similar', 'action-freesound'];
 
   const I18N = window.FSI18N || {};
@@ -97,6 +99,18 @@
     if (persist) localStorage.setItem(STORAGE.contrast, String(contrast));
     const input = $('#s_contrast');
     const label = $('#contrastValue');
+    if (input && Number(input.value) !== contrast) input.value = String(contrast);
+    if (label) label.textContent = contrast + '%';
+  }
+
+  function applyWaveformContrast(value, persist = true) {
+    const contrast = clamp(Number(value) || DEFAULT_WAVEFORM_CONTRAST, 20, 100);
+    const opacity = contrast / 100;
+    document.documentElement.style.setProperty('--wave-opacity', opacity.toFixed(2));
+    document.documentElement.style.setProperty('--wave-base-opacity', (opacity * .38).toFixed(3));
+    if (persist) localStorage.setItem(STORAGE.waveformContrast, String(contrast));
+    const input = $('#s_waveformContrast');
+    const label = $('#waveformContrastValue');
     if (input && Number(input.value) !== contrast) input.value = String(contrast);
     if (label) label.textContent = contrast + '%';
   }
@@ -266,6 +280,7 @@
     const accent = $('#s_accent');
     const lang = $('#s_language');
     const contrast = $('#s_contrast');
+    const waveformContrast = $('#s_waveformContrast');
     if (accent) {
       accent.value = normalizeHex(localStorage.getItem(STORAGE.accent) || DEFAULT_ACCENT);
       accent.addEventListener('input', () => applyAccent(accent.value));
@@ -279,6 +294,11 @@
       contrast.value = localStorage.getItem(STORAGE.contrast) || String(DEFAULT_CONTRAST);
       contrast.addEventListener('input', () => applyContrast(contrast.value));
       contrast.addEventListener('change', () => applyContrast(contrast.value));
+    }
+    if (waveformContrast) {
+      waveformContrast.value = localStorage.getItem(STORAGE.waveformContrast) || String(DEFAULT_WAVEFORM_CONTRAST);
+      waveformContrast.addEventListener('input', () => applyWaveformContrast(waveformContrast.value));
+      waveformContrast.addEventListener('change', () => applyWaveformContrast(waveformContrast.value));
     }
     document.querySelectorAll('[data-ui-part]').forEach((input) => {
       input.addEventListener('change', () => applyVisibility({ [input.dataset.uiPart]: input.checked }));
@@ -320,6 +340,7 @@
   setSidebarWidth(localStorage.getItem(STORAGE.sidebarWidth) || DEFAULT_SIDEBAR, false);
   setSidebarCollapsed(localStorage.getItem(STORAGE.sidebarCollapsed) === '1', false);
   applyTheme(localStorage.getItem(STORAGE.theme) || 'dark', false);
+  applyWaveformContrast(localStorage.getItem(STORAGE.waveformContrast) || DEFAULT_WAVEFORM_CONTRAST, false);
   applyVisibility(readVisibility(), false);
   bindSidebar();
   bindTheme();
@@ -328,5 +349,5 @@
   bindFirstRunDisclaimer();
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.FSUI = { applyTheme, applyAccent, applyContrast, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
+  window.FSUI = { applyTheme, applyAccent, applyContrast, applyWaveformContrast, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
 })();
