@@ -224,6 +224,7 @@ window.FSI18N.en = {
     "Формат файла": "File format",
     "История поиска": "Search history",
     "Поиск сохранён": "Search saved",
-    "Удалить": "Delete"
+    "Удалить": "Delete",
+    "Неофициальный некоммерческий клиент Freesound API. Сайт не монетизируется, его автор не получает финансовой выгоды от его работы. Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra. Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.": "Unofficial, non-commercial client for the Freesound API. This site is not monetized and its author receives no financial benefit from operating it. This site is not part of Freesound and is not affiliated with the Music Technology Group / Universitat Pompeu Fabra. Data and sounds are loaded from Freesound; use of the API and sounds is governed by Freesound's terms and the license of each sound."
   }
 };
