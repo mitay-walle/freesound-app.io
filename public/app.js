@@ -783,7 +783,7 @@
   function rerenderLists() {
     if (S.results) renderResults();
     if (S.tab === 'favorites') renderFavorites();
-    $('#modalBody .results').forEach((box) => {
+    $$('#modalBody .results').forEach((box) => {
       const ids = $('.card', box).map((c) => Number(c.dataset.id));
       box.innerHTML = ids.map((id) => S.soundCache.get(id)).filter(Boolean).map((s) => cardHtml(s)).join('');
     });
@@ -796,9 +796,9 @@
   }
 
   function markSelected() {
-    $('.card.selected').forEach((card) => card.classList.remove('selected'));
+    $$('.card.selected').forEach((card) => card.classList.remove('selected'));
     if (!S.selectedId) return;
-    $(`.card[data-id="${S.selectedId}"]`).forEach((card) => card.classList.add('selected'));
+    $$(`.card[data-id="${S.selectedId}"]`).forEach((card) => card.classList.add('selected'));
   }
 
   function selectSound(id, scroll = true) {
