@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <title>Freesound App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="./style.css?v=9">
+<link rel="stylesheet" href="./style.css?v=10">
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand" title="Freesound App">Free<span>sound</span>.</div>
+  <a class="brand brand-link" href="https://freesound.org/" target="_blank" rel="noopener" title="Неофициальный клиент Freesound API. Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra. Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.">Free<span>sound</span>.<span class="brand-heart">♥</span></a>
   <form id="searchForm" class="searchform" autocomplete="off">
     <span data-icon="search"></span>
     <input id="q" type="search" placeholder="Что ищем? Например: rain loop -thunder   или   &quot;door slam&quot;" list="historyList" spellcheck="false">
@@ -39,9 +39,14 @@
           <h2>Фильтры</h2>
           <div class="side-actions">
             <button type="button" class="icon-btn filter-collapse" id="collapseFilters" title="Свернуть фильтры" aria-label="Свернуть фильтры" data-icon="chevron-left"></button>
-            <button type="button" class="btn small ghost" id="resetFilters" title="Сбросить все фильтры">Сбросить</button>
+            <button type="button" class="btn small ghost" id="resetFilters" title="Сбросить фильтры к значениям по умолчанию">К дефолту</button>
             <button type="submit" class="btn small primary">Применить</button>
           </div>
+        </div>
+        <div class="filter-preset-tools">
+          <select id="filterPresets" title="Пресеты фильтров"><option value="">Пресеты фильтров…</option></select>
+          <button type="button" class="icon-btn" id="saveFilterPreset" title="Сохранить только фильтры" aria-label="Сохранить пресет фильтров">+</button>
+          <button type="button" class="icon-btn danger" id="deleteFilterPreset" title="Удалить выбранный пресет" aria-label="Удалить пресет фильтров">×</button>
         </div>
 
         <details open class="fgroup">
@@ -180,6 +185,8 @@
 
         <div class="side-foot">
           <button type="submit" class="btn primary wide">Применить фильтры</button>
+          <button type="button" class="btn ghost wide" id="saveMainSearch" title="Сделать текущий запрос и фильтры стартовым поиском">Сохранить как основной поиск</button>
+          <div class="hint main-search-status" id="mainSearchStatus"></div>
         </div>
       </form>
     </aside>
@@ -251,6 +258,8 @@
         <textarea id="blBulk" rows="4" placeholder="по одному значению на строку"></textarea>
         <div class="row">
           <button class="btn small ghost" id="blImport">Импортировать в текущий раздел</button>
+          <input type="file" id="blJsonFile" accept=".json,application/json" hidden>
+          <button class="btn small ghost" id="blImportJson">Импорт JSON</button>
           <button class="btn small ghost" id="blExport">Экспорт JSON</button>
           <button class="btn small ghost" id="blCopy">Скопировать список</button>
         </div>
@@ -303,8 +312,29 @@
             <label>Акцентный цвет
               <div class="color-setting"><input type="color" id="s_accent" value="#3d7bff"><span id="accentValue">#3d7bff</span></div>
             </label>
+            <label>Контраст
+              <div class="contrast-setting"><input type="range" id="s_contrast" min="60" max="140" step="1" value="100"><span id="contrastValue">100%</span></div>
+            </label>
           </div>
-          <p class="hint">Тема и панель фильтров меняются прямо в основном интерфейсе.</p>
+          <div class="result-visibility-settings">
+            <div class="ctl-label">Элементы результата поиска</div>
+            <div class="checks visibility-checks">
+              <label><input type="checkbox" data-ui-part="waveform" checked> Waveform</label>
+              <label><input type="checkbox" data-ui-part="technical" checked> Тех. параметры</label>
+              <label><input type="checkbox" data-ui-part="author" checked> Автор</label>
+              <label><input type="checkbox" data-ui-part="rating" checked> Рейтинг</label>
+              <label><input type="checkbox" data-ui-part="downloads" checked> Скачивания</label>
+              <label><input type="checkbox" data-ui-part="comments" checked> Комментарии</label>
+              <label><input type="checkbox" data-ui-part="license" checked> Лицензия</label>
+              <label><input type="checkbox" data-ui-part="date" checked> Дата</label>
+              <label><input type="checkbox" data-ui-part="pack" checked> Пак</label>
+              <label><input type="checkbox" data-ui-part="category" checked> Категория</label>
+              <label><input type="checkbox" data-ui-part="tags" checked> Теги</label>
+              <label><input type="checkbox" data-ui-part="description" checked> Описание</label>
+              <label><input type="checkbox" data-ui-part="actions" checked> Действия справа</label>
+            </div>
+          </div>
+          <p class="hint">Изменения интерфейса применяются сразу и сохраняются в этом браузере. Тема и панель фильтров меняются прямо в основном интерфейсе.</p>
         </fieldset>
         <fieldset>
           <legend>Аккаунт Freesound</legend>
@@ -399,8 +429,8 @@
 
 <script src="./fields.js?v=5"></script>
 <script src="./controls.js?v=5"></script>
-<script src="./ui-prefs.js?v=2"></script>
+<script src="./ui-prefs.js?v=3"></script>
 <script src="./static-adapter.js?v=3"></script>
-<script src="./app.js?v=8"></script>
+<script src="./app.js?v=9"></script>
 </body>
 </html>
