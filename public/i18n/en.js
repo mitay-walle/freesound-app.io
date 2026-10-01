@@ -219,6 +219,11 @@ window.FSI18N.en = {
     "Скачать оригинал": "Download original",
     "Похожие": "Similar",
     "Комментарий": "Comment",
-    "заметка": "note"
+    "заметка": "note",
+    "Размер текста": "Text size",
+    "Формат файла": "File format",
+    "История поиска": "Search history",
+    "Поиск сохранён": "Search saved",
+    "Удалить": "Delete"
   }
 };

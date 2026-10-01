@@ -881,7 +881,14 @@
     const isFav = S.favSet.has(s.id);
     const blocked = isBlocked(s.username);
     const selected = S.selectedId === s.id;
-    const meta = [fmtDur(s.duration), s.type && s.type.toUpperCase(), s.samplerate && (s.samplerate / 1000).toString().replace('.', ',') + ' kHz', s.bitdepth ? s.bitdepth + ' bit' : '', chStr(s.channels), fmtSize(s.filesize)].filter(Boolean).join(' · ');
+    const meta = [
+      s.duration != null ? `<span class="ui-part ui-tech-field ui-tech-duration">${esc(fmtDur(s.duration))}</span>` : '',
+      s.type ? `<span class="ui-part ui-tech-field ui-tech-format">${esc(String(s.type).toUpperCase())}</span>` : '',
+      s.samplerate ? `<span class="ui-part ui-tech-field ui-tech-samplerate">${esc((s.samplerate / 1000).toString().replace('.', ',') + ' kHz')}</span>` : '',
+      s.bitdepth ? `<span class="ui-part ui-tech-field ui-tech-bitdepth">${esc(s.bitdepth + ' bit')}</span>` : '',
+      s.channels ? `<span class="ui-part ui-tech-field ui-tech-channels">${esc(chStr(s.channels))}</span>` : '',
+      s.filesize != null ? `<span class="ui-part ui-tech-field ui-tech-filesize">${esc(fmtSize(s.filesize))}</span>` : '',
+    ].filter(Boolean).join('');
     const packId = packIdFrom(s.pack);
     const badges = [];
     if (s.bpm) badges.push(`<span class="dbadge ui-part ui-category" title="BPM">♩ ${esc(s.bpm)}</span>`);
@@ -899,7 +906,7 @@
       </div>
       <div class="card-main">
         <div class="card-title"><a href="${esc(s.url || '#')}" data-action="detail" title="Подробнее (Ctrl+клик — открыть на сайте)">${esc(s.name)}</a></div>
-        <div class="card-meta ui-part ui-technical">${esc(meta)}</div>
+        <div class="card-meta">${meta}</div>
         <div class="card-sub">
           <span class="ui-part ui-author"><a href="#" data-action="author" data-user="${esc(s.username)}" class="author">${esc(s.username)}</a>
           ${blocked
@@ -1610,16 +1617,99 @@
     S.sort = snap.sort || localStorage.getItem('fs_sort') || 'score'; $('#sort').value = S.sort; localStorage.setItem('fs_sort', S.sort);
     S.groupByPack = Boolean(snap.groupByPack); $('#groupByPack').checked = S.groupByPack;
     if (snap.pageSize) { S.pageSize = Number(snap.pageSize); $('#pageSize').value = String(S.pageSize); }
+    updateSaveSearchStar();
+    hideSearchSuggestions();
     if (search) runSearch(snap.page || 1);
   }
-  function renderSavedSearches() {
-    const sel = $('#savedSearches');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">Сохранённые…</option>' + S.searches.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join('');
-    if (cur && S.searches[cur]) sel.value = cur;
+
+  function comparableSearch(snap) {
+    return JSON.stringify({
+      query: String((snap && snap.query) || '').trim(),
+      filters: (snap && snap.filters) || defaultFilters(),
+      sort: (snap && snap.sort) || 'score',
+      groupByPack: Boolean(snap && snap.groupByPack),
+      pageSize: Number((snap && snap.pageSize) || 30),
+    });
   }
+
+  function currentSavedSearchIndex() {
+    S.query = val('#q');
+    const current = comparableSearch(snapshotSearch(''));
+    return S.searches.findIndex((snap) => comparableSearch(snap) === current);
+  }
+
+  function updateSaveSearchStar() {
+    const button = $('#saveSearchStar');
+    if (!button) return;
+    const saved = currentSavedSearchIndex() >= 0;
+    button.classList.toggle('on', saved);
+    button.innerHTML = ic('star', '', saved);
+    button.title = saved ? 'Поиск сохранён' : 'Сохранить текущий запрос и фильтры';
+    button.setAttribute('aria-label', button.title);
+  }
+
+  function readHistory() {
+    try {
+      const value = JSON.parse(localStorage.getItem('fs_history') || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  let searchSuggestionIndex = -1;
+
+  function hideSearchSuggestions() {
+    const box = $('#searchSuggestions');
+    if (!box) return;
+    box.classList.add('hidden');
+    searchSuggestionIndex = -1;
+  }
+
+  function renderSearchSuggestions() {
+    const box = $('#searchSuggestions');
+    if (!box) return;
+    const needle = val('#q').trim().toLowerCase();
+    const saved = S.searches
+      .map((snap, index) => ({ snap, index }))
+      .filter(({ snap }) => !needle || String(snap.name || '').toLowerCase().includes(needle) || String(snap.query || '').toLowerCase().includes(needle))
+      .slice(0, 8);
+    const historyItems = readHistory()
+      .map((query, index) => ({ query, index }))
+      .filter(({ query }) => !needle || String(query).toLowerCase().includes(needle))
+      .slice(0, 12);
+
+    const savedHtml = saved.length ? `<div class="search-suggest-section"><div class="search-suggest-title">Сохранённые поиски</div>${saved.map(({ snap, index }) =>
+      `<div class="search-suggest-row"><button type="button" class="search-suggestion-main" data-search-saved="${index}">${ic('star', 'sm', true)}<span><b>${esc(snap.name || snap.query || 'Без названия')}</b>${snap.query && snap.query !== snap.name ? `<small>${esc(snap.query)}</small>` : ''}</span></button><button type="button" class="search-suggest-delete" data-search-delete-saved="${index}" title="Удалить">×</button></div>`).join('')}</div>` : '';
+    const historyHtml = historyItems.length ? `<div class="search-suggest-section"><div class="search-suggest-title">История поиска</div>${historyItems.map(({ query, index }) =>
+      `<div class="search-suggest-row"><button type="button" class="search-suggestion-main" data-search-history="${index}">${ic('rotate-ccw', 'sm')}<span>${esc(query)}</span></button><button type="button" class="search-suggest-delete" data-search-delete-history="${index}" title="Удалить">×</button></div>`).join('')}</div>` : '';
+
+    box.innerHTML = savedHtml + historyHtml;
+    box.classList.toggle('hidden', !saved.length && !historyItems.length);
+    searchSuggestionIndex = -1;
+  }
+
+  function setSearchSuggestionIndex(next) {
+    const box = $('#searchSuggestions');
+    if (!box) return;
+    const items = Array.from(box.querySelectorAll('.search-suggestion-main'));
+    if (!items.length) return;
+    searchSuggestionIndex = Math.max(0, Math.min(items.length - 1, next));
+    items.forEach((item, index) => item.classList.toggle('active', index === searchSuggestionIndex));
+    items[searchSuggestionIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  function renderSavedSearches() {
+    updateSaveSearchStar();
+    if (document.activeElement === $('#q')) renderSearchSuggestions();
+  }
+
   async function saveSearches() {
-    try { const data = await local('/searches', 'PUT', { items: S.searches }); S.searches = data.items; renderSavedSearches(); } catch (e) { toast(e.message, 'error'); }
+    try {
+      const data = await local('/searches', 'PUT', { items: S.searches });
+      S.searches = data.items;
+      renderSavedSearches();
+    } catch (e) { toast(e.message, 'error'); }
   }
 
   function loadFilterPresets() {
@@ -1692,16 +1782,12 @@
   }
 
   function addHistory(q) {
-    let h = [];
-    try { h = JSON.parse(localStorage.getItem('fs_history') || '[]'); } catch (_) { /* ignore */ }
-    h = [q, ...h.filter((x) => x !== q)].slice(0, 40);
+    const h = [q, ...readHistory().filter((x) => x !== q)].slice(0, 40);
     localStorage.setItem('fs_history', JSON.stringify(h));
     renderHistory();
   }
   function renderHistory() {
-    let h = [];
-    try { h = JSON.parse(localStorage.getItem('fs_history') || '[]'); } catch (_) { /* ignore */ }
-    $('#historyList').innerHTML = h.map((q) => `<option value="${esc(q)}">`).join('');
+    if (document.activeElement === $('#q')) renderSearchSuggestions();
   }
 
   function compactFilters(f) {
@@ -1935,31 +2021,72 @@
     $('#saveFilterPreset').addEventListener('click', saveCurrentFilterPreset);
     $('#deleteFilterPreset').addEventListener('click', () => deleteFilterPreset($('#filterPresets').value));
     $('#saveMainSearch').addEventListener('click', saveMainSearch);
-    $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); showTab('search'); runSearch(1); });
-    $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; localStorage.setItem('fs_sort', S.sort); if (S.results) runSearch(1); });
-    $('#pageSize').addEventListener('change', (e) => { S.pageSize = Number(e.target.value); if (S.results) runSearch(1); });
-    $('#groupByPack').addEventListener('change', (e) => { S.groupByPack = e.target.checked; if (S.results) runSearch(1); });
-    $$('#viewSeg button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
-    $('#toggleRequest').addEventListener('click', () => { $('#requestBox').classList.toggle('hidden'); renderRequestBox(); });
-    $('#saveSearch').addEventListener('click', async () => {
-      const sel = $('#savedSearches');
-      const cur = sel.value !== '' ? S.searches[Number(sel.value)] : null;
-      const name = prompt('Название сохранённого поиска:', cur ? cur.name : (S.query || 'Без названия'));
-      if (!name) return;
+    $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); hideSearchSuggestions(); S.query = val('#q'); showTab('search'); runSearch(1); });
+    $('#q').addEventListener('focus', renderSearchSuggestions);
+    $('#q').addEventListener('input', () => { updateSaveSearchStar(); renderSearchSuggestions(); });
+    $('#q').addEventListener('keydown', (e) => {
+      const box = $('#searchSuggestions');
+      const items = box ? Array.from(box.querySelectorAll('.search-suggestion-main')) : [];
+      if (e.key === 'ArrowDown' && items.length) {
+        e.preventDefault(); setSearchSuggestionIndex(searchSuggestionIndex + 1);
+      } else if (e.key === 'ArrowUp' && items.length) {
+        e.preventDefault(); setSearchSuggestionIndex(searchSuggestionIndex < 0 ? items.length - 1 : searchSuggestionIndex - 1);
+      } else if (e.key === 'Enter' && searchSuggestionIndex >= 0 && items[searchSuggestionIndex]) {
+        e.preventDefault(); items[searchSuggestionIndex].click();
+      } else if (e.key === 'Escape') {
+        hideSearchSuggestions();
+      }
+    });
+    $('#searchSuggestions').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const savedButton = e.target.closest('[data-search-saved]');
+      if (savedButton) {
+        const snap = S.searches[Number(savedButton.dataset.searchSaved)];
+        if (snap) { showTab('search'); applySnapshot(snap); }
+        return;
+      }
+      const historyButton = e.target.closest('[data-search-history]');
+      if (historyButton) {
+        const query = readHistory()[Number(historyButton.dataset.searchHistory)];
+        if (query != null) { setVal('#q', query); S.query = query; hideSearchSuggestions(); showTab('search'); runSearch(1); }
+        return;
+      }
+      const deleteSaved = e.target.closest('[data-search-delete-saved]');
+      if (deleteSaved) {
+        S.searches.splice(Number(deleteSaved.dataset.searchDeleteSaved), 1);
+        await saveSearches();
+        return;
+      }
+      const deleteHistory = e.target.closest('[data-search-delete-history]');
+      if (deleteHistory) {
+        const h = readHistory();
+        h.splice(Number(deleteHistory.dataset.searchDeleteHistory), 1);
+        localStorage.setItem('fs_history', JSON.stringify(h));
+        renderSearchSuggestions();
+      }
+    });
+    $('#saveSearchStar').addEventListener('click', async () => {
+      S.query = val('#q');
+      const currentIndex = currentSavedSearchIndex();
+      const current = currentIndex >= 0 ? S.searches[currentIndex] : null;
+      const name = prompt('Название сохранённого поиска:', current ? current.name : (S.query || 'Без названия'));
+      if (!name || !name.trim()) return;
       const snap = snapshotSearch(name.trim());
-      const idx = S.searches.findIndex((s) => s.name === snap.name);
-      if (idx >= 0) S.searches[idx] = snap; else S.searches.push(snap);
+      if (currentIndex >= 0) S.searches[currentIndex] = snap;
+      else {
+        const sameName = S.searches.findIndex((item) => item.name === snap.name);
+        if (sameName >= 0) S.searches[sameName] = snap;
+        else S.searches.push(snap);
+      }
       await saveSearches();
-      sel.value = String(S.searches.findIndex((s) => s.name === snap.name));
       toast('Поиск сохранён', 'ok');
     });
-    $('#savedSearches').addEventListener('change', (e) => {
-      const snap = S.searches[Number(e.target.value)];
-      if (!snap) return;
-      if (confirm(`Загрузить «${snap.name}»? (Отмена — удалить его из сохранённых)`)) applySnapshot(snap);
-      else if (confirm(`Удалить сохранённый поиск «${snap.name}»?`)) { S.searches.splice(Number(e.target.value), 1); saveSearches(); e.target.value = ''; }
-      else e.target.value = '';
-    });
+    $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; localStorage.setItem('fs_sort', S.sort); updateSaveSearchStar(); if (S.results) runSearch(1); });
+    $('#pageSize').addEventListener('change', (e) => { S.pageSize = Number(e.target.value); updateSaveSearchStar(); if (S.results) runSearch(1); });
+    $('#groupByPack').addEventListener('change', (e) => { S.groupByPack = e.target.checked; updateSaveSearchStar(); if (S.results) runSearch(1); });
+    $$('#viewSeg button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+    $('#toggleRequest').addEventListener('click', () => { $('#requestBox').classList.toggle('hidden'); renderRequestBox(); });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#searchForm')) hideSearchSuggestions(); });
     $$('.tab').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
     $('#statusChip').addEventListener('click', () => { if (S.status && !S.status.hasApiKey && !S.status.oauth.connected) openOnboarding(); else showTab('settings'); });
 
@@ -2137,7 +2264,7 @@
         break;
       case 'search-author': closeModal(); setVal('#f_user', el.dataset.user); $('#f_user').closest('details').open = true; showTab('search'); runSearch(1); break;
       case 'search-pack': closeModal(); setVal('#f_pack', el.dataset.pack); $('#f_pack').closest('details').open = true; showTab('search'); runSearch(1); break;
-      case 'page': runSearch(Number(el.dataset.page)); $('#view-search .content').scrollTop = 0; break;
+      case 'page': runSearch(Number(el.dataset.page)); $('#view-search .content-scroll').scrollTop = 0; break;
       case 'copy-url': navigator.clipboard.writeText(S.lastUrl).then(() => toast('URL скопирован', { timeout: 1200 })); break;
       case 'copy-text': navigator.clipboard.writeText(el.dataset.text || '').then(() => toast('Скопировано', { timeout: 1200 })); break;
       case 'goto-settings': showTab('settings'); break;
@@ -2164,10 +2291,10 @@
     } else if (e.altKey && e.key === 'ArrowRight') {
       e.preventDefault();
       const pages = S.results ? Math.ceil((S.results.count || 0) / S.pageSize) : 0;
-      if (S.page < pages) { runSearch(S.page + 1); $('#view-search .content').scrollTop = 0; }
+      if (S.page < pages) { runSearch(S.page + 1); $('#view-search .content-scroll').scrollTop = 0; }
     } else if (e.altKey && e.key === 'ArrowLeft') {
       e.preventDefault();
-      if (S.page > 1) { runSearch(S.page - 1); $('#view-search .content').scrollTop = 0; }
+      if (S.page > 1) { runSearch(S.page - 1); $('#view-search .content-scroll').scrollTop = 0; }
     } else if (S.view === 'grid' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault(); moveGridSelection(e.key);
     } else if (e.key === 'ArrowDown') {

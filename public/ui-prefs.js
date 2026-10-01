@@ -10,6 +10,7 @@
     sidebarCollapsed: 'fs_sidebar_collapsed',
     contrast: 'fs_ui_contrast',
     waveformContrast: 'fs_ui_waveform_contrast',
+    textScale: 'fs_ui_text_scale',
     visibility: 'fs_ui_visibility',
     disclaimer: 'fs_freesound_disclaimer_v1',
   };
@@ -19,7 +20,9 @@
   const MAX_SIDEBAR = 600;
   const DEFAULT_CONTRAST = 100;
   const DEFAULT_WAVEFORM_CONTRAST = 100;
-  const UI_PARTS = ['waveform', 'technical', 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions', 'action-favorite', 'action-rate', 'action-comment', 'action-original', 'action-similar', 'action-freesound'];
+  const DEFAULT_TEXT_SCALE = 120;
+  const TECH_UI_PARTS = ['tech-duration', 'tech-format', 'tech-samplerate', 'tech-bitdepth', 'tech-channels', 'tech-filesize'];
+  const UI_PARTS = ['waveform', ...TECH_UI_PARTS, 'author', 'rating', 'downloads', 'comments', 'license', 'date', 'pack', 'category', 'tags', 'description', 'actions', 'action-favorite', 'action-rate', 'action-comment', 'action-original', 'action-similar', 'action-freesound'];
 
   const I18N = window.FSI18N || {};
   const SUPPORTED_LANGUAGES = ['ru', 'en', 'zh', 'ko'];
@@ -65,6 +68,11 @@
   function readVisibility() {
     let stored = {};
     try { stored = JSON.parse(localStorage.getItem(STORAGE.visibility) || '{}'); } catch (_) { stored = {}; }
+    if (stored.technical === false) {
+      TECH_UI_PARTS.forEach((part) => {
+        if (!(part in stored)) stored[part] = false;
+      });
+    }
     const result = {};
     UI_PARTS.forEach((part) => { result[part] = stored[part] !== false; });
     return result;
@@ -113,6 +121,16 @@
     const label = $('#waveformContrastValue');
     if (input && Number(input.value) !== contrast) input.value = String(contrast);
     if (label) label.textContent = contrast + '%';
+  }
+
+  function applyTextScale(value, persist = true) {
+    const scale = clamp(Number(value) || DEFAULT_TEXT_SCALE, 80, 160);
+    document.documentElement.style.setProperty('--text-scale', (scale / 100).toFixed(2));
+    if (persist) localStorage.setItem(STORAGE.textScale, String(scale));
+    const input = $('#s_textScale');
+    const label = $('#textScaleValue');
+    if (input && Number(input.value) !== scale) input.value = String(scale);
+    if (label) label.textContent = scale + '%';
   }
 
   function themeIcon(theme) {
@@ -302,6 +320,7 @@
     const lang = $('#s_language');
     const contrast = $('#s_contrast');
     const waveformContrast = $('#s_waveformContrast');
+    const textScale = $('#s_textScale');
     if (accent) {
       accent.value = normalizeHex(localStorage.getItem(STORAGE.accent) || DEFAULT_ACCENT);
       accent.addEventListener('input', () => applyAccent(accent.value));
@@ -320,6 +339,11 @@
       waveformContrast.value = localStorage.getItem(STORAGE.waveformContrast) || String(DEFAULT_WAVEFORM_CONTRAST);
       waveformContrast.addEventListener('input', () => applyWaveformContrast(waveformContrast.value));
       waveformContrast.addEventListener('change', () => applyWaveformContrast(waveformContrast.value));
+    }
+    if (textScale) {
+      textScale.value = localStorage.getItem(STORAGE.textScale) || String(DEFAULT_TEXT_SCALE);
+      textScale.addEventListener('input', () => applyTextScale(textScale.value));
+      textScale.addEventListener('change', () => applyTextScale(textScale.value));
     }
     document.querySelectorAll('[data-ui-part]').forEach((input) => {
       input.addEventListener('change', () => applyVisibility({ [input.dataset.uiPart]: input.checked }));
@@ -362,6 +386,7 @@
   setSidebarCollapsed(localStorage.getItem(STORAGE.sidebarCollapsed) === '1', false);
   applyTheme(localStorage.getItem(STORAGE.theme) || 'dark', false);
   applyWaveformContrast(localStorage.getItem(STORAGE.waveformContrast) || DEFAULT_WAVEFORM_CONTRAST, false);
+  applyTextScale(localStorage.getItem(STORAGE.textScale) || DEFAULT_TEXT_SCALE, false);
   applyVisibility(readVisibility(), false);
   bindSidebar();
   bindTheme();
@@ -370,5 +395,5 @@
   bindFirstRunDisclaimer();
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.FSUI = { applyTheme, applyAccent, applyContrast, applyWaveformContrast, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
+  window.FSUI = { applyTheme, applyAccent, applyContrast, applyWaveformContrast, applyTextScale, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
 })();

@@ -12,18 +12,19 @@
   <div class="header-left">
     <a class="brand brand-link" href="https://freesound.org/" target="_blank" rel="noopener" title="Неофициальный некоммерческий клиент Freesound API. Сайт не монетизируется, его автор не получает финансовой выгоды от его работы. Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra. Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.">Free<span>sound</span>.<span class="brand-heart">♥</span></a>
     <button type="button" class="icon-btn theme-toggle" id="themeToggle" title="Светлая / тёмная тема" aria-label="Светлая / тёмная тема"><span data-icon="moon"></span></button>
+    <a class="btn small ghost donate-btn" href="https://freesound.org/donations/donate/" target="_blank" rel="noopener">Donate Freesound</a>
   </div>
   <form id="searchForm" class="searchform" autocomplete="off">
     <span data-icon="search"></span>
-    <input id="q" type="search" placeholder="Что ищем? Например: rain loop -thunder   или   &quot;door slam&quot;" list="historyList" spellcheck="false">
-    <datalist id="historyList"></datalist>
+    <input id="q" type="search" placeholder="Что ищем? Например: rain loop -thunder   или   &quot;door slam&quot;" spellcheck="false" aria-autocomplete="list" aria-controls="searchSuggestions">
+    <button type="button" class="search-save-star" id="saveSearchStar" title="Сохранить текущий запрос и фильтры" aria-label="Сохранить текущий запрос и фильтры"></button>
     <button type="submit" class="btn primary" id="searchBtn">Искать</button>
+    <div id="searchSuggestions" class="search-suggestions hidden" role="listbox"></div>
   </form>
   <div class="header-right">
     <nav class="tabs">
       <button class="tab active" data-tab="search" data-icon="search" title="Поиск" aria-label="Поиск"><span class="tab-label">Поиск</span></button>
       <button class="tab" data-tab="blacklist" data-icon="ban" title="Чёрный список" aria-label="Чёрный список"><span class="tab-label">Чёрный список</span> <span class="badge" id="blCount"></span></button>
-      <button class="tab" data-tab="downloads" data-icon="download" title="Загрузки" aria-label="Загрузки"><span class="tab-label">Загрузки</span></button>
       <button class="tab" data-tab="settings" data-icon="sliders" title="Настройки" aria-label="Настройки"><span class="tab-label">Настройки</span></button>
     </nav>
     <div class="bar-right">
@@ -46,6 +47,7 @@
             <button type="submit" class="btn small primary">Применить</button>
           </div>
         </div>
+        <div class="sidebar-scroll">
         <div class="filter-preset-tools">
           <select id="filterPresets" title="Пресеты фильтров"><option value="">Пресеты фильтров…</option></select>
           <button type="button" class="icon-btn" id="saveFilterPreset" title="Сохранить только фильтры" aria-label="Сохранить пресет фильтров">+</button>
@@ -186,6 +188,7 @@
           </div>
         </details>
 
+        </div>
         <div class="side-foot">
           <button type="submit" class="btn primary wide">Применить фильтры</button>
           <button type="button" class="btn ghost wide" id="saveMainSearch" title="Сделать текущий запрос и фильтры стартовым поиском">Сохранить как основной поиск</button>
@@ -196,7 +199,6 @@
     <div class="sidebar-resizer" id="sidebarResizer" role="separator" aria-orientation="vertical" aria-label="Изменить ширину фильтров" tabindex="0"></div>
 
     <div class="content">
-      <div id="modeBanner" class="banner hidden"></div>
       <div class="toolbar">
         <div class="tb-left">
           <button type="button" class="icon-btn filters-expand hidden" id="expandFilters" title="Показать фильтры" aria-label="Показать фильтры" data-icon="chevron-right"></button>
@@ -221,13 +223,14 @@ Alt+← / Alt+→ — страницы
 Space — play / pause
 Enter — проиграть заново
 Shift+D — скачать оригинал"></button>
-          <select id="savedSearches" title="Сохранённые поиски"><option value="">Сохранённые…</option></select>
-          <button type="button" class="btn small ghost" id="saveSearch" title="Сохранить текущий запрос и фильтры">Сохранить</button>
           <button type="button" class="btn small ghost" id="toggleRequest" title="Показать URL запроса к API">URL</button>
         </div>
       </div>
-      <div id="requestBox" class="request-box hidden"></div>
-      <div id="results" class="results list"></div>
+      <div class="content-scroll">
+        <div id="modeBanner" class="banner hidden"></div>
+        <div id="requestBox" class="request-box hidden"></div>
+        <div id="results" class="results list"></div>
+      </div>
       <div id="pager" class="pager"></div>
     </div>
   </section>
@@ -330,12 +333,20 @@ Shift+D — скачать оригинал"></button>
             <label>Контраст Waveform
               <div class="contrast-setting"><input type="range" id="s_waveformContrast" min="20" max="100" step="1" value="100"><span id="waveformContrastValue">100%</span></div>
             </label>
+            <label>Размер текста
+              <div class="contrast-setting"><input type="range" id="s_textScale" min="80" max="160" step="5" value="120"><span id="textScaleValue">120%</span></div>
+            </label>
           </div>
           <div class="result-visibility-settings">
             <div class="ctl-label">Элементы результата поиска</div>
             <div class="checks visibility-checks">
               <label><input type="checkbox" data-ui-part="waveform" checked> Waveform</label>
-              <label><input type="checkbox" data-ui-part="technical" checked> Тех. параметры</label>
+              <label><input type="checkbox" data-ui-part="tech-duration" checked> Длительность</label>
+              <label><input type="checkbox" data-ui-part="tech-format" checked> Формат файла</label>
+              <label><input type="checkbox" data-ui-part="tech-samplerate" checked> Частота дискретизации</label>
+              <label><input type="checkbox" data-ui-part="tech-bitdepth" checked> Разрядность</label>
+              <label><input type="checkbox" data-ui-part="tech-channels" checked> Каналы</label>
+              <label><input type="checkbox" data-ui-part="tech-filesize" checked> Размер файла</label>
               <label><input type="checkbox" data-ui-part="author" checked> Автор</label>
               <label><input type="checkbox" data-ui-part="rating" checked> Рейтинг</label>
               <label><input type="checkbox" data-ui-part="downloads" checked> Скачивания</label>
@@ -355,7 +366,6 @@ Shift+D — скачать оригинал"></button>
               <label class="visibility-sub"><input type="checkbox" data-ui-part="action-freesound" checked> Freesound — кнопка</label>
             </div>
           </div>
-          <p class="hint">Изменения интерфейса применяются сразу и сохраняются в этом браузере. Тема и панель фильтров меняются прямо в основном интерфейсе.</p>
         </fieldset>
         <fieldset>
           <legend>Аккаунт Freesound</legend>
@@ -365,7 +375,6 @@ Shift+D — скачать оригинал"></button>
             <button type="button" class="btn small ghost" id="oauthLogout">Выйти</button>
             <button type="button" class="btn small ghost" id="openOnboarding">Пошаговая настройка</button>
           </div>
-          <p class="hint">Вход открывает окно Freesound, где нужно разрешить доступ приложению. После этого доступны скачивание оригиналов и ваш профиль; токен обновляется сам.</p>
           <div class="settings-doc-links"><a href="https://freesound.org/docs/api/authentication.html" target="_blank" rel="noopener">Authentication docs ↗</a><a href="https://freesound.org/docs/api/resources_apiv2.html" target="_blank" rel="noopener">API resources ↗</a></div>
         </fieldset>
 
@@ -422,12 +431,11 @@ Shift+D — скачать оригинал"></button>
           <legend>Чёрный список</legend>
           <label class="inline"><input type="checkbox" id="s_blacklistServerSide"> Исключать на стороне API (рекомендуется)</label>
           <label>Максимум записей одного вида в запросе <input type="number" id="s_blacklistMaxServerSide" min="1" max="2000"></label>
-          <p class="hint">Остальные (если список длиннее) скрываются на клиенте.</p>
         </fieldset>
 
         <fieldset class="api-limits-section">
           <legend>Лимиты Freesound API</legend>
-          <p class="hint">Freesound считает два окна: <b>burst</b> — запросы за последнюю минуту, <b>sustained</b> — запросы за последние 24 часа. Ограничения применяются на уровне пользователя Freesound, поэтому запросы из нескольких API-клиентов одного аккаунта суммируются. Сам endpoint <code>/usage/</code> не расходует лимит.</p>
+          <p class="hint"><b>Burst</b> — последняя минута · <b>Sustained</b> — последние 24 часа.</p>
           <div class="api-limit-grid">
             <div class="api-limit-card"><span>Последняя минута</span><strong id="usageBurst">— / —</strong><small>Burst</small></div>
             <div class="api-limit-card"><span>Последние 24 часа</span><strong id="usageSustained">— / —</strong><small>Sustained</small></div>
@@ -448,7 +456,7 @@ Shift+D — скачать оригинал"></button>
               <article class="card settings-preview-card settings-preview-list">
                 <div class="card-media">
                   <div class="ui-part ui-waveform">
-                    <div class="wave settings-preview-wave"><div class="settings-preview-waveform"></div><span class="play-ic"></span></div>
+                    <div class="wave settings-preview-wave"><img class="settings-preview-waveform" src="./assets/settings-waveform.svg" alt=""><span class="play-ic"></span></div>
                   </div>
                   <div class="card-media-actions">
                     <button type="button" class="media-btn replay" tabindex="-1"><span>Replay</span></button>
@@ -457,7 +465,7 @@ Shift+D — скачать оригинал"></button>
                 </div>
                 <div class="card-main">
                   <div class="card-title"><a href="#" tabindex="-1">Rain on city window.wav</a></div>
-                  <div class="card-meta ui-part ui-technical">12.4 s · WAV · 48 kHz · 24 bit · stereo</div>
+                  <div class="card-meta"><span class="ui-part ui-tech-field ui-tech-duration">12.4 s</span><span class="ui-part ui-tech-field ui-tech-format">WAV</span><span class="ui-part ui-tech-field ui-tech-samplerate">48 kHz</span><span class="ui-part ui-tech-field ui-tech-bitdepth">24 bit</span><span class="ui-part ui-tech-field ui-tech-channels">stereo</span><span class="ui-part ui-tech-field ui-tech-filesize">8.2 MB</span></div>
                   <div class="card-sub">
                     <span class="ui-part ui-author"><a href="#" class="author" tabindex="-1">fieldrecorder</a></span>
                     <span class="ui-part ui-rating">★ 4.8</span>
@@ -488,7 +496,7 @@ Shift+D — скачать оригинал"></button>
                 <article class="card settings-preview-card">
                   <div class="card-media">
                     <div class="ui-part ui-waveform">
-                      <div class="wave settings-preview-wave"><div class="settings-preview-waveform"></div><span class="play-ic"></span></div>
+                      <div class="wave settings-preview-wave"><img class="settings-preview-waveform" src="./assets/settings-waveform.svg" alt=""><span class="play-ic"></span></div>
                     </div>
                     <div class="card-media-actions">
                       <button type="button" class="media-btn replay" tabindex="-1"><span>Replay</span></button>
@@ -497,7 +505,7 @@ Shift+D — скачать оригинал"></button>
                   </div>
                   <div class="card-main">
                     <div class="card-title"><a href="#" tabindex="-1">Rain on city window.wav</a></div>
-                    <div class="card-meta ui-part ui-technical">12.4 s · WAV · 48 kHz</div>
+                    <div class="card-meta"><span class="ui-part ui-tech-field ui-tech-duration">12.4 s</span><span class="ui-part ui-tech-field ui-tech-format">WAV</span><span class="ui-part ui-tech-field ui-tech-samplerate">48 kHz</span><span class="ui-part ui-tech-field ui-tech-bitdepth">24 bit</span><span class="ui-part ui-tech-field ui-tech-channels">stereo</span><span class="ui-part ui-tech-field ui-tech-filesize">8.2 MB</span></div>
                     <div class="card-sub">
                       <span class="ui-part ui-author"><a href="#" class="author" tabindex="-1">fieldrecorder</a></span>
                       <span class="ui-part ui-rating">★ 4.8</span>
@@ -524,9 +532,6 @@ Shift+D — скачать оригинал"></button>
             </section>
           </div>
         </aside>
-      </div>
-      <div class="settings-bottom-sticky">
-        <button type="submit" form="settingsForm" class="btn primary">Сохранить настройки</button>
       </div>
     </div>
   </section>
