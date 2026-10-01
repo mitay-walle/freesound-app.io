@@ -202,7 +202,7 @@
   }
 
   function translateTextNode(node) {
-    if (node.parentElement && node.parentElement.closest('[data-i18n-ignore]')) return;
+    if (node.parentElement && node.parentElement.closest('[data-i18n-ignore], .tag, .chip-item')) return;
     if (!textOriginal.has(node)) textOriginal.set(node, node.nodeValue);
     const original = textOriginal.get(node);
     if (language === 'ru') {

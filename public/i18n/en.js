@@ -234,6 +234,7 @@ window.FSI18N.en = {
     " — последняя минута · ": " — last minute · ",
     " — последние 24 часа.": " — last 24 hours.",
     "Так бывает, когда в Callback URL указан ": "This happens when the Callback URL is ",
-    ". Скопируйте код со страницы Freesound и вставьте сюда.": ". Copy the code from the Freesound page and paste it here."
+    ". Скопируйте код со страницы Freesound и вставьте сюда.": ". Copy the code from the Freesound page and paste it here.",
+    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound uses two windows: burst — requests from the last minute, sustained — requests from the last 24 hours."
   }
 };
