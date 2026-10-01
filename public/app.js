@@ -779,8 +779,14 @@
       const burstLimit = b.limit ?? '—';
       const sustainedUsed = sustained.num ?? sustained.num_requests ?? '—';
       const sustainedLimit = sustained.limit ?? '—';
-      $('#usageInfo').textContent = `За минуту: ${burstUsed} / ${burstLimit} · за сутки: ${sustainedUsed} / ${sustainedLimit}`;
-    } catch (_) { /* silent */ }
+      const burstText = `${burstUsed} / ${burstLimit}`;
+      const sustainedText = `${sustainedUsed} / ${sustainedLimit}`;
+      if ($('#usageBurst')) $('#usageBurst').textContent = burstText;
+      if ($('#usageSustained')) $('#usageSustained').textContent = sustainedText;
+      if ($('#usageInfo')) $('#usageInfo').textContent = `Обновлено ${new Date().toLocaleTimeString()}`;
+    } catch (e) {
+      if ($('#usageInfo')) $('#usageInfo').textContent = 'Не удалось получить лимиты: ' + e.message;
+    }
   }
 
   // ------------------------------------------------------------------ blacklist model
@@ -1677,6 +1683,72 @@
     } catch (e) { toast('Сервер недоступен: ' + e.message, 'error'); }
   }
 
+  async function refreshDownloadFolderUI() {
+    const input = $('#s_downloadDir');
+    const choose = $('#chooseDownloadFolder');
+    const clear = $('#clearDownloadFolder');
+    const hint = $('#downloadFolderHint');
+    if (!input || !choose || !clear || !hint) return;
+
+    if (window.FSStatic && window.FSStatic.active) {
+      input.readOnly = true;
+      input.disabled = false;
+      if (window.FSStatic.supportsDirectoryPicker) {
+        choose.classList.remove('hidden');
+        clear.classList.remove('hidden');
+        const info = await window.FSStatic.getDownloadFolderInfo();
+        input.value = info && info.name ? info.name : 'Browser default Downloads';
+        hint.textContent = info && info.name
+          ? 'Files are written directly to this folder. This does not change the browser global Downloads folder.'
+          : 'No app-specific folder selected. Downloads use the browser default behavior.';
+      } else {
+        choose.classList.add('hidden');
+        clear.classList.add('hidden');
+        input.value = 'Browser default Downloads';
+        hint.textContent = 'This browser does not support app-specific folder access. Downloads use the browser default folder.';
+      }
+    } else {
+      input.readOnly = false;
+      choose.classList.add('hidden');
+      clear.classList.add('hidden');
+      hint.textContent = 'Local server mode: this path is used directly by Node.js.';
+    }
+  }
+
+  async function getAttributionData() {
+    return local('/attribution');
+  }
+
+  async function viewAttribution() {
+    try {
+      const data = await getAttributionData();
+      openModal(`<h2>_attribution.txt</h2><pre class="attribution-preview">${esc(data.content || 'Файл пока пуст.')}</pre>`, { narrow: true });
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function copyAttribution() {
+    try {
+      const data = await getAttributionData();
+      await navigator.clipboard.writeText(data.content || '');
+      toast('_attribution.txt скопирован', { timeout: 1500 });
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function downloadAttribution() {
+    try {
+      const data = await getAttributionData();
+      downloadBlob('_attribution.txt', data.content || '', 'text/plain;charset=utf-8');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function clearAttribution() {
+    if (!confirm('Очистить _attribution.txt?')) return;
+    try {
+      await local('/attribution', 'DELETE');
+      toast('_attribution.txt очищен', 'ok');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
   // Fills the settings form from the server. Called only when the tab opens or after an explicit save,
   // never on focus/visibility changes, so typed-but-unsaved values are not wiped.
   async function fillSettingsForm() {
@@ -1686,6 +1758,7 @@
       setVal('#s_clientId', s.clientId); setVal('#s_clientSecret', s.clientSecret || s.apiKey);
       setVal('#s_downloadDir', s.downloadDir); setVal('#s_previewQuality', s.previewQuality); setVal('#s_pageSize', s.pageSize);
       $('#s_attributionLog').checked = Boolean(s.attributionLog);
+      await refreshDownloadFolderUI();
       $('#s_blacklistServerSide').checked = Boolean(s.blacklistServerSide);
       setVal('#s_blacklistMaxServerSide', s.blacklistMaxServerSide);
       $('#redirectUri').textContent = S.status ? S.status.redirectUri : '';
@@ -1900,6 +1973,20 @@
       } catch (e) { toast(e.message, 'error'); }
     });
     $('#checkUsage').addEventListener('click', () => { $('#usageInfo').textContent = '…'; refreshUsage(true); });
+    $('#attributionView').addEventListener('click', viewAttribution);
+    $('#attributionCopy').addEventListener('click', copyAttribution);
+    $('#attributionDownload').addEventListener('click', downloadAttribution);
+    $('#attributionClear').addEventListener('click', clearAttribution);
+    $('#chooseDownloadFolder').addEventListener('click', async () => {
+      if (!window.FSStatic || !window.FSStatic.chooseDownloadFolder) return;
+      try { await window.FSStatic.chooseDownloadFolder(); await refreshDownloadFolderUI(); }
+      catch (e) { if (e && e.name !== 'AbortError') toast(e.message, 'error'); }
+    });
+    $('#clearDownloadFolder').addEventListener('click', async () => {
+      if (!window.FSStatic || !window.FSStatic.clearDownloadFolder) return;
+      await window.FSStatic.clearDownloadFolder();
+      await refreshDownloadFolderUI();
+    });
   }
 
   function setView(v) {
@@ -1910,9 +1997,9 @@
     $('#favList').className = 'results ' + v;
   }
 
-  function downloadBlob(name, text) {
+  function downloadBlob(name, text, mime = 'application/json') {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    a.href = URL.createObjectURL(new Blob([text], { type: mime }));
     a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
