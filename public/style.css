@@ -304,6 +304,9 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .results.grid .card-media { width: 100%; }
 .results.grid .wave { width: 100%; height: 84px; }
 .results.grid .card-actions { flex-direction: row; justify-content: flex-start; }
+.results.grid .card-sub .icon-btn { width: 20px; height: 20px; min-width: 20px; padding: 0; margin-left: 1px; justify-content: center; }
+.results.grid .card-sub .icon-btn .ic { width: 12px; height: 12px; }
+.results.grid .card-sub .ui-author, .results.grid .card-sub .ui-pack { gap: 5px; }
 .results.grid .desc { display: none; }
 
 
