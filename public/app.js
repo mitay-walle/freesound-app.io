@@ -2167,8 +2167,6 @@
     } else if (e.key === 'ArrowUp') {
       e.preventDefault(); moveSelection(-1);
     } else if (e.key === 'Enter' && selected()) {
-      e.preventDefault(); playSound(selected());
-    } else if (e.key.toLowerCase() === 'r' && selected()) {
       e.preventDefault(); replaySound(selected());
     } else if (e.shiftKey && e.key.toLowerCase() === 'd' && selected()) {
       e.preventDefault(); download(selected(), 'original');

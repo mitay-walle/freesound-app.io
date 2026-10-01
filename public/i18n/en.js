@@ -173,6 +173,6 @@ window.FSI18N.en = {
     "Похожие — кнопка": "Similar — button",
     "Freesound — кнопка": "Freesound — button",
     "Хоткеи": "Shortcuts",
-    "Хоткеи:\n↑ / ↓ / ← / → — навигация\nAlt+← / Alt+→ — страницы\nSpace — play / pause\nEnter — проиграть выбранный\nR — проиграть заново\nShift+D — скачать оригинал": "Shortcuts:\n↑ / ↓ / ← / → — navigate\nAlt+← / Alt+→ — pages\nSpace — play / pause\nEnter — play selected\nR — replay\nShift+D — download original"
+    "Хоткеи:\n↑ / ↓ / ← / → — навигация\nAlt+← / Alt+→ — страницы\nSpace — play / pause\nEnter — проиграть выбранный\nR — проиграть заново\nShift+D — скачать оригинал": "Shortcuts:\n↑ / ↓ / ← / → — navigate\nAlt+← / Alt+→ — pages\nSpace — play / pause\nEnter — replay from start\nShift+D — download original"
   }
 };
