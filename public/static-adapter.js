@@ -201,7 +201,7 @@
   }
 
   async function apiRequest(input, init = {}) {
-    const requestUrl = new URL(typeof input === 'string' ? input : input.url, location.href);
+    const requestUrl = new URL(input instanceof URL ? input.href : (typeof input === 'string' ? input : input.url), location.href);
     const apiPath = requestUrl.pathname.replace(/^\/api/, '') || '/';
     const target = new URL(FS_API + apiPath);
     requestUrl.searchParams.forEach((v, k) => target.searchParams.append(k, v));
@@ -322,7 +322,7 @@
   }
 
   async function localRequest(input, init = {}) {
-    const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+    const url = new URL(input instanceof URL ? input.href : (typeof input === 'string' ? input : input.url), location.href);
     const path = url.pathname.replace(/^\/local/, '');
     const method = String(init.method || 'GET').toUpperCase();
     let body = {};
@@ -456,7 +456,7 @@
   }
 
   window.fetch = async function patchedFetch(input, init = {}) {
-    const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+    const url = new URL(input instanceof URL ? input.href : (typeof input === 'string' ? input : input.url), location.href);
     if (url.origin === location.origin && url.pathname.startsWith('/api/')) return apiRequest(input, init);
     if (url.origin === location.origin && url.pathname.startsWith('/local/')) return localRequest(input, init);
     return nativeFetch(input, init);
