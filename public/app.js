@@ -111,6 +111,8 @@
     tab: 'search',
     usageAt: 0,
     blKind: 'user',
+    selectedId: null,
+    filterPresets: [],
   };
 
   // Blacklist model: users / tags / packs / words.
@@ -121,6 +123,9 @@
     pack: { label: 'пак', plural: 'Паки', placeholder: 'ID пака или ссылка на него' },
     word: { label: 'слово', plural: 'Слова', placeholder: 'слово или фраза в названии/описании/тегах' },
   };
+  const FILTER_PRESETS_KEY = 'fs_filter_presets';
+  const MAIN_SEARCH_KEY = 'fs_main_search';
+  const tagSuggestCache = new Map();
 
   // ------------------------------------------------------------------ http
   async function api(path, params = {}, init = {}) {
@@ -185,11 +190,58 @@
   }
 
   // ------------------------------------------------------------------ chips input
+  async function suggestTags(query) {
+    const q = String(query || '').trim().toLowerCase();
+    if (q.length < 2) return [];
+    const cached = tagSuggestCache.get(q);
+    if (cached && Date.now() - cached.at < 300000) return cached.items.slice();
+
+    const counts = new Map();
+    for (const sound of S.soundCache.values()) {
+      for (const tag of sound.tags || []) {
+        const lower = String(tag).toLowerCase();
+        if (!lower.includes(q)) continue;
+        counts.set(lower, (counts.get(lower) || 0) + 3);
+      }
+    }
+    try {
+      const { data } = await api('/search/text/', { query: q, fields: 'id,tags', page_size: 20, _nobl: 1 });
+      for (const sound of data.results || []) {
+        for (const tag of sound.tags || []) {
+          const lower = String(tag).toLowerCase();
+          if (!lower.includes(q)) continue;
+          counts.set(lower, (counts.get(lower) || 0) + 1);
+        }
+      }
+    } catch (_) { /* local suggestions are still useful */ }
+
+    const items = Array.from(counts.entries())
+      .sort((a, b) => Number(b[0].startsWith(q)) - Number(a[0].startsWith(q)) || b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 12)
+      .map(([tag]) => tag);
+    tagSuggestCache.set(q, { at: Date.now(), items });
+    return items;
+  }
+
   function makeChips(container) {
     const input = document.createElement('input');
     input.type = 'text';
+    input.autocomplete = 'off';
     input.placeholder = container.dataset.placeholder || '';
+    const suggest = document.createElement('div');
+    suggest.className = 'tag-suggest hidden';
     const items = [];
+    let suggestItems = [];
+    let suggestIndex = -1;
+    let suggestTimer = null;
+    let suggestSeq = 0;
+
+    const hideSuggest = () => {
+      suggest.classList.add('hidden');
+      suggest.innerHTML = '';
+      suggestItems = [];
+      suggestIndex = -1;
+    };
     const render = () => {
       $$('.chip-item', container).forEach((c) => c.remove());
       items.forEach((t, i) => {
@@ -204,20 +256,66 @@
       raw.split(/[,\s]+/).map((t) => t.trim().toLowerCase()).filter(Boolean).forEach((t) => { if (!items.includes(t)) items.push(t); });
       render();
       container.dispatchEvent(new Event('input', { bubbles: true }));
+      hideSuggest();
     };
+    const renderSuggest = (values) => {
+      suggestItems = values.filter((tag) => !items.includes(tag));
+      suggestIndex = suggestItems.length ? 0 : -1;
+      suggest.innerHTML = suggestItems.map((tag, i) => `<button type="button" data-tag="${esc(tag)}" class="${i === suggestIndex ? 'active' : ''}">${esc(tag)}</button>`).join('');
+      suggest.classList.toggle('hidden', !suggestItems.length);
+    };
+    const updateSuggestSelection = () => {
+      $$('button', suggest).forEach((button, i) => button.classList.toggle('active', i === suggestIndex));
+      const active = suggest.querySelector('button.active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    };
+    const queueSuggest = () => {
+      clearTimeout(suggestTimer);
+      const q = input.value.trim();
+      if (q.length < 2) { hideSuggest(); return; }
+      const seq = ++suggestSeq;
+      suggestTimer = setTimeout(async () => {
+        const values = await suggestTags(q);
+        if (seq !== suggestSeq || input.value.trim() !== q) return;
+        renderSuggest(values);
+      }, 220);
+    };
+
+    input.addEventListener('input', queueSuggest);
     input.addEventListener('keydown', (e) => {
+      if (!suggest.classList.contains('hidden') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        suggestIndex = (suggestIndex + (e.key === 'ArrowDown' ? 1 : -1) + suggestItems.length) % suggestItems.length;
+        updateSuggestSelection();
+        return;
+      }
       if (e.key === 'Enter' || e.key === ',') {
-        if (input.value.trim()) { e.preventDefault(); add(input.value); input.value = ''; }
+        const selected = !suggest.classList.contains('hidden') && suggestIndex >= 0 ? suggestItems[suggestIndex] : input.value;
+        if (String(selected || '').trim()) { e.preventDefault(); add(selected); input.value = ''; }
+      } else if (e.key === 'Escape') {
+        hideSuggest();
       } else if (e.key === 'Backspace' && !input.value && items.length) {
         items.pop(); render(); container.dispatchEvent(new Event('input', { bubbles: true }));
       }
     });
-    input.addEventListener('blur', () => { if (input.value.trim()) { add(input.value); input.value = ''; } });
+    input.addEventListener('blur', () => setTimeout(() => {
+      if (input.value.trim()) { add(input.value); input.value = ''; }
+      hideSuggest();
+    }, 150));
+    suggest.addEventListener('mousedown', (e) => {
+      const button = e.target.closest('button[data-tag]');
+      if (!button) return;
+      e.preventDefault();
+      add(button.dataset.tag);
+      input.value = '';
+      input.focus();
+    });
     container.addEventListener('click', (e) => { if (e.target === container) input.focus(); });
     container.appendChild(input);
+    container.appendChild(suggest);
     return {
       get: () => items.slice(),
-      set: (arr) => { items.length = 0; (arr || []).forEach((t) => { if (!items.includes(t)) items.push(t); }); render(); },
+      set: (arr) => { items.length = 0; (arr || []).forEach((t) => { if (!items.includes(t)) items.push(t); }); render(); hideSuggest(); },
       add,
     };
   }
@@ -527,6 +625,7 @@
     }
     renderPager(data.count);
     markPlaying();
+    markSelected();
   }
 
   function renderPager(count) {
@@ -625,40 +724,48 @@
     S.soundCache.set(s.id, s);
     const isFav = S.favSet.has(s.id);
     const blocked = isBlocked(s.username);
+    const selected = S.selectedId === s.id;
     const meta = [fmtDur(s.duration), s.type && s.type.toUpperCase(), s.samplerate && (s.samplerate / 1000).toString().replace('.', ',') + ' kHz', s.bitdepth ? s.bitdepth + ' bit' : '', chStr(s.channels), fmtSize(s.filesize)].filter(Boolean).join(' · ');
     const packId = packIdFrom(s.pack);
     const badges = [];
-    if (s.bpm) badges.push(`<span class="dbadge" title="BPM">♩ ${esc(s.bpm)}</span>`);
-    if (s.note_name) badges.push(`<span class="dbadge" title="Нота">${esc(s.note_name)}</span>`);
-    if (s.tonality) badges.push(`<span class="dbadge" title="Тональность">${esc(s.tonality)}</span>`);
-    if (s.loopable) badges.push(`<span class="dbadge" title="Зацикливается">loop</span>`);
+    if (s.bpm) badges.push(`<span class="dbadge ui-part ui-category" title="BPM">♩ ${esc(s.bpm)}</span>`);
+    if (s.note_name) badges.push(`<span class="dbadge ui-part ui-category" title="Нота">${esc(s.note_name)}</span>`);
+    if (s.tonality) badges.push(`<span class="dbadge ui-part ui-category" title="Тональность">${esc(s.tonality)}</span>`);
+    if (s.loopable) badges.push('<span class="dbadge ui-part ui-category" title="Зацикливается">loop</span>');
     const q = previewQuality();
-    return `<article class="card ${blocked ? 'blocked' : ''}" data-id="${s.id}">
-      ${waveHtml(s)}
+    return `<article class="card ${blocked ? 'blocked' : ''} ${selected ? 'selected' : ''}" data-id="${s.id}">
+      <div class="card-media">
+        <div class="ui-part ui-waveform">${waveHtml(s)}</div>
+        <div class="card-media-actions">
+          <button type="button" data-action="replay" class="media-btn replay" title="Проиграть заново">${ic('rotate-ccw')}<span>Replay</span></button>
+          <button type="button" data-action="dl-preview" class="media-btn download" title="Скачать превью (${esc(q)})">${ic('download')}<span>Скачать</span></button>
+        </div>
+      </div>
       <div class="card-main">
         <div class="card-title"><a href="${esc(s.url || '#')}" data-action="detail" title="Подробнее (Ctrl+клик — открыть на сайте)">${esc(s.name)}</a></div>
-        <div class="card-meta">${esc(meta)}</div>
+        <div class="card-meta ui-part ui-technical">${esc(meta)}</div>
         <div class="card-sub">
-          <a href="#" data-action="author" data-user="${esc(s.username)}" class="author">${esc(s.username)}</a>
+          <span class="ui-part ui-author"><a href="#" data-action="author" data-user="${esc(s.username)}" class="author">${esc(s.username)}</a>
           ${blocked
             ? `<button type="button" class="icon-btn on" data-action="unblock-user" data-user="${esc(s.username)}" title="Убрать автора из чёрного списка">${ic('ban', 'sm')}</button>`
-            : `<button type="button" class="icon-btn danger" data-action="block-user" data-user="${esc(s.username)}" title="Автора в чёрный список">${ic('ban', 'sm')}</button>`}
-          ${s.avg_rating ? `<span title="${esc(s.num_ratings)} оценок">${ic('star', 'sm')} ${Number(s.avg_rating).toFixed(1)}${s.num_ratings ? ` (${esc(s.num_ratings)})` : ''}</span>` : ''}
-          ${s.num_downloads != null ? `<span title="скачиваний">${ic('download', 'sm')} ${fmtNum(s.num_downloads)}</span>` : ''}
-          ${s.num_comments ? `<span title="комментариев">${ic('comment', 'sm')} ${esc(s.num_comments)}</span>` : ''}
-          ${s.license ? `<span class="lic ${licClass(s.license)}" title="${esc(s.license)}">${esc(licShort(s.license))}</span>` : ''}
-          ${s.created ? `<span title="дата загрузки">${esc(String(s.created).slice(0, 10))}</span>` : ''}
-          ${packId ? `<a href="#" data-action="pack" data-pack="${packId}" title="Открыть пак">${ic('box', 'sm')} пак</a><button type="button" class="icon-btn mini danger" data-action="block-pack" data-pack="${packId}" title="Пак в чёрный список">${ic('ban')}</button>` : ''}
-          ${s.category ? `<span class="cat">${esc(s.category)}${s.subcategory ? ' / ' + esc(s.subcategory) : ''}</span>` : ''}
+            : `<button type="button" class="icon-btn danger" data-action="block-user" data-user="${esc(s.username)}" title="Автора в чёрный список">${ic('ban', 'sm')}</button>`}</span>
+          ${s.avg_rating ? `<span class="ui-part ui-rating" title="${esc(s.num_ratings)} оценок">${ic('star', 'sm')} ${Number(s.avg_rating).toFixed(1)}${s.num_ratings ? ` (${esc(s.num_ratings)})` : ''}</span>` : ''}
+          ${s.num_downloads != null ? `<span class="ui-part ui-downloads" title="скачиваний">${ic('download', 'sm')} ${fmtNum(s.num_downloads)}</span>` : ''}
+          ${s.num_comments ? `<span class="ui-part ui-comments" title="комментариев">${ic('comment', 'sm')} ${esc(s.num_comments)}</span>` : ''}
+          ${s.license ? `<span class="lic ui-part ui-license ${licClass(s.license)}" title="${esc(s.license)}">${esc(licShort(s.license))}</span>` : ''}
+          ${s.created ? `<span class="ui-part ui-date" title="дата загрузки">${esc(String(s.created).slice(0, 10))}</span>` : ''}
+          ${packId ? `<span class="ui-part ui-pack"><a href="#" data-action="pack" data-pack="${packId}" title="Открыть пак">${ic('box', 'sm')} пак</a><button type="button" class="icon-btn mini danger" data-action="block-pack" data-pack="${packId}" title="Пак в чёрный список">${ic('ban')}</button></span>` : ''}
+          ${s.category ? `<span class="cat ui-part ui-category">${esc(s.category)}${s.subcategory ? ' / ' + esc(s.subcategory) : ''}</span>` : ''}
           ${badges.join('')}
         </div>
-        ${s.tags && s.tags.length ? `<div class="tags">${s.tags.map(tagChip).join('')}</div>` : ''}
-        ${s.description ? `<div class="desc">${esc(String(s.description).slice(0, 320))}</div>` : ''}
-        ${s.n_from_same_pack ? `<div><a href="#" data-action="morepack" data-uri="${esc(s.more_from_same_pack)}">+${esc(s.n_from_same_pack)} из того же пака</a></div>` : ''}
+        ${s.tags && s.tags.length ? `<div class="tags ui-part ui-tags">${s.tags.map(tagChip).join('')}</div>` : ''}
+        ${s.description ? `<div class="desc ui-part ui-description">${esc(String(s.description).slice(0, 320))}</div>` : ''}
+        ${s.n_from_same_pack ? `<div class="ui-part ui-pack"><a href="#" data-action="morepack" data-uri="${esc(s.more_from_same_pack)}">+${esc(s.n_from_same_pack)} из того же пака</a></div>` : ''}
       </div>
-      <div class="card-actions">
+      <div class="card-actions ui-part ui-actions">
         <button type="button" data-action="fav" class="icon-btn heart ${isFav ? 'on' : ''}" title="${isFav ? 'Убрать из избранного' : 'В избранное'}">${ic('heart', '', isFav)}</button>
-        <button type="button" data-action="dl-preview" class="icon-btn" title="Скачать превью (${esc(q)})">${ic('download')}</button>
+        <button type="button" data-action="rate" class="icon-btn" title="Оценить звук">${ic('star')}</button>
+        <button type="button" data-action="comment" class="icon-btn" title="Написать комментарий">${ic('comment')}</button>
         <button type="button" data-action="dl-original" class="icon-btn" title="Скачать оригинал (нужен вход)">${ic('download')}<small>orig</small></button>
         <button type="button" data-action="similar" class="icon-btn" title="Похожие звуки">${ic('shuffle')}</button>
         <a href="${esc(s.url || '#')}" target="_blank" rel="noopener" class="icon-btn" title="Открыть на freesound.org">${ic('external')}</a>
@@ -676,11 +783,42 @@
   function rerenderLists() {
     if (S.results) renderResults();
     if (S.tab === 'favorites') renderFavorites();
-    $$('#modalBody .results').forEach((box) => {
-      const ids = $$('.card', box).map((c) => Number(c.dataset.id));
+    $('#modalBody .results').forEach((box) => {
+      const ids = $('.card', box).map((c) => Number(c.dataset.id));
       box.innerHTML = ids.map((id) => S.soundCache.get(id)).filter(Boolean).map((s) => cardHtml(s)).join('');
     });
     markPlaying();
+    markSelected();
+  }
+
+  function selectedSound() {
+    return (S.selectedId && S.soundCache.get(S.selectedId)) || S.current || null;
+  }
+
+  function markSelected() {
+    $('.card.selected').forEach((card) => card.classList.remove('selected'));
+    if (!S.selectedId) return;
+    $(`.card[data-id="${S.selectedId}"]`).forEach((card) => card.classList.add('selected'));
+  }
+
+  function selectSound(id, scroll = true) {
+    const sound = S.soundCache.get(Number(id));
+    if (!sound) return null;
+    S.selectedId = sound.id;
+    markSelected();
+    if (scroll) {
+      const card = document.querySelector(`.card[data-id="${sound.id}"]`);
+      if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    return sound;
+  }
+
+  function moveSelection(dir) {
+    if (!S.currentList.length) return null;
+    let index = S.selectedId ? S.currentList.indexOf(S.selectedId) : -1;
+    if (index < 0 && S.current) index = S.currentList.indexOf(S.current.id);
+    index = Math.min(S.currentList.length - 1, Math.max(0, index < 0 ? (dir > 0 ? 0 : S.currentList.length - 1) : index + dir));
+    return selectSound(S.currentList[index]);
   }
 
   // ------------------------------------------------------------------ context menu (instant blacklist)
@@ -748,6 +886,16 @@
   function togglePlay() {
     if (!S.current) { if (S.currentList.length) playSound(S.soundCache.get(S.currentList[0])); return; }
     if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+  }
+
+  function replaySound(s) {
+    if (!s) return;
+    if (!S.current || S.current.id !== s.id) {
+      playSound(s);
+      return;
+    }
+    audio.currentTime = 0;
+    audio.play().catch((err) => toast('Не удалось воспроизвести: ' + err.message, 'error'));
   }
 
   function playNext(dir = 1) {
@@ -839,6 +987,58 @@
   $('#modal').addEventListener('click', (e) => { if (e.target === $('#modal')) closeModal(); });
 
   const errorHtml = (e) => `<div class="banner err">${esc(e.message)}</div>`;
+
+  async function submitRating(sound, rating) {
+    if (!sound) return;
+    try {
+      await api(`/sounds/${sound.id}/rate/`, {}, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ rating: Number(rating) }),
+      });
+      const count = Number(sound.num_ratings || 0);
+      const average = Number(sound.avg_rating || 0);
+      sound.avg_rating = count > 0 ? ((average * count) + Number(rating)) / (count + 1) : Number(rating);
+      sound.num_ratings = count + 1;
+      refreshCardsFor(sound.id);
+      toast(`Оценка ${rating}/5 отправлена`, 'ok');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function openRating(sound) {
+    if (!sound) return;
+    openModal(`<div class="quick-action-modal" data-id="${sound.id}">
+      <h2>Оценить «${esc(sound.name)}»</h2>
+      <div class="rating-buttons">${[1, 2, 3, 4, 5].map((rating) => `<button type="button" class="btn rating-choice" data-action="rate-value" data-rating="${rating}">${ic('star')} ${rating}</button>`).join('')}</div>
+      <p class="hint">Freesound не позволяет изменить оценку повторно: повторная оценка того же звука вернёт конфликт.</p>
+    </div>`, { narrow: true });
+  }
+
+  function openComment(sound) {
+    if (!sound) return;
+    openModal(`<form id="quickCommentForm" class="quick-action-modal" data-id="${sound.id}">
+      <h2>Комментарий к «${esc(sound.name)}»</h2>
+      <textarea id="quickCommentText" rows="6" required placeholder="Комментарий"></textarea>
+      <div class="row"><button type="submit" class="btn primary">Отправить</button><button type="button" class="btn ghost" data-action="close-modal">Отмена</button></div>
+    </form>`, { narrow: true });
+    $('#quickCommentText').focus();
+    $('#quickCommentForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const comment = val('#quickCommentText').trim();
+      if (!comment) return;
+      try {
+        await api(`/sounds/${sound.id}/comment/`, {}, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ comment }),
+        });
+        sound.num_comments = Number(sound.num_comments || 0) + 1;
+        refreshCardsFor(sound.id);
+        closeModal();
+        toast('Комментарий отправлен', 'ok');
+      } catch (e) { toast(e.message, 'error'); }
+    });
+  }
 
   async function openDetail(id) {
     openModal('<div class="loading">Загрузка…</div>');
@@ -1169,6 +1369,7 @@
     $('#favList').className = 'results ' + S.view;
     $('#favList').innerHTML = list.length ? list.map((s) => cardHtml(s)).join('') : '<div class="empty"><h3>Избранного пока нет</h3>Нажмите на сердечко у любого звука.</div>';
     markPlaying();
+    markSelected();
   }
 
   async function download(s, kind) {
@@ -1220,6 +1421,75 @@
   }
   async function saveSearches() {
     try { const data = await local('/searches', 'PUT', { items: S.searches }); S.searches = data.items; renderSavedSearches(); } catch (e) { toast(e.message, 'error'); }
+  }
+
+  function loadFilterPresets() {
+    try { S.filterPresets = JSON.parse(localStorage.getItem(FILTER_PRESETS_KEY) || '[]'); }
+    catch (_) { S.filterPresets = []; }
+    if (!Array.isArray(S.filterPresets)) S.filterPresets = [];
+    renderFilterPresets();
+  }
+
+  function renderFilterPresets() {
+    const select = $('#filterPresets');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Пресеты фильтров…</option>' + S.filterPresets.map((preset, index) => `<option value="${index}">${esc(preset.name)}</option>`).join('');
+    if (current && S.filterPresets[Number(current)]) select.value = current;
+  }
+
+  function saveFilterPresetsLocal() {
+    localStorage.setItem(FILTER_PRESETS_KEY, JSON.stringify(S.filterPresets));
+    renderFilterPresets();
+  }
+
+  function saveCurrentFilterPreset() {
+    const name = prompt('Название пресета фильтров:');
+    if (!name || !name.trim()) return;
+    const preset = { name: name.trim(), filters: readFilters(), saved: new Date().toISOString() };
+    const index = S.filterPresets.findIndex((item) => item.name.toLowerCase() === preset.name.toLowerCase());
+    if (index >= 0) S.filterPresets[index] = preset; else S.filterPresets.push(preset);
+    saveFilterPresetsLocal();
+    $('#filterPresets').value = String(S.filterPresets.findIndex((item) => item.name === preset.name));
+    toast('Пресет фильтров сохранён', 'ok');
+  }
+
+  function applyFilterPreset(index) {
+    const preset = S.filterPresets[Number(index)];
+    if (!preset) return;
+    writeFilters(preset.filters || defaultFilters());
+    updateFilterPreview();
+    renderModeBanner();
+    toast(`Пресет «${preset.name}» применён`, { timeout: 1500 });
+  }
+
+  function deleteFilterPreset(index) {
+    const preset = S.filterPresets[Number(index)];
+    if (!preset) return;
+    if (!confirm(`Удалить пресет фильтров «${preset.name}»?`)) return;
+    S.filterPresets.splice(Number(index), 1);
+    saveFilterPresetsLocal();
+    $('#filterPresets').value = '';
+  }
+
+  function readMainSearch() {
+    try { return JSON.parse(localStorage.getItem(MAIN_SEARCH_KEY) || 'null'); }
+    catch (_) { return null; }
+  }
+
+  function renderMainSearchStatus() {
+    const el = $('#mainSearchStatus');
+    if (!el) return;
+    const snap = readMainSearch();
+    el.textContent = snap ? `Основной: ${snap.query || 'без текста, только фильтры'}` : '';
+  }
+
+  function saveMainSearch() {
+    S.query = val('#q');
+    const snap = snapshotSearch('Основной поиск');
+    localStorage.setItem(MAIN_SEARCH_KEY, JSON.stringify(snap));
+    renderMainSearchStatus();
+    toast('Текущий поиск сохранён как основной', 'ok');
   }
 
   function addHistory(q) {
@@ -1274,6 +1544,7 @@
     if (tab === 'search' && S.results) { S.currentList = (S.results.results || []).filter((s) => !hiddenReason(s)).map((s) => s.id); }
     if (tab !== 'search') history.replaceState(null, '', '#tab=' + tab);
     else if (S.results) saveHash();
+    else history.replaceState(null, '', '#tab=search');
   }
 
   // ------------------------------------------------------------------ settings
@@ -1374,7 +1645,19 @@
     $('#filterForm').addEventListener('input', debounce(updateFilterPreview, 120));
     $('#filterForm').addEventListener('change', updateFilterPreview);
     $('#filterForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); runSearch(1); });
-    $('#resetFilters').addEventListener('click', () => { writeFilters(defaultFilters()); renderModeBanner(); });
+    $('#resetFilters').addEventListener('click', () => {
+      writeFilters(defaultFilters());
+      updateFilterPreview();
+      renderModeBanner();
+      $('#filterPresets').value = '';
+      toast('Фильтры сброшены к дефолту', { timeout: 1200 });
+    });
+    loadFilterPresets();
+    renderMainSearchStatus();
+    $('#filterPresets').addEventListener('change', (e) => { if (e.target.value !== '') applyFilterPreset(e.target.value); });
+    $('#saveFilterPreset').addEventListener('click', saveCurrentFilterPreset);
+    $('#deleteFilterPreset').addEventListener('click', () => deleteFilterPreset($('#filterPresets').value));
+    $('#saveMainSearch').addEventListener('click', saveMainSearch);
     $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); runSearch(1); });
     $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; if (S.results) runSearch(1); });
     $('#pageSize').addEventListener('change', (e) => { S.pageSize = Number(e.target.value); if (S.results) runSearch(1); });
@@ -1435,6 +1718,37 @@
       if (!values.length) return;
       try { const data = await local('/blacklist/add', 'POST', { kind: S.blKind, values, note: 'импорт' }); setBlacklist(data); rerenderLists(); setVal('#blBulk', ''); toast(`Добавлено: ${data.added}`, 'ok'); } catch (err) { toast(err.message, 'error'); }
     });
+    $('#blImportJson').addEventListener('click', () => $('#blJsonFile').click());
+    $('#blJsonFile').addEventListener('change', async (event) => {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      try {
+        const imported = JSON.parse(await file.text());
+        if (!imported || typeof imported !== 'object') throw new Error('JSON должен содержать объект blacklist.');
+        const merge = (current, incoming, key) => {
+          const map = new Map((current || []).map((item) => [String(item[key]).toLowerCase(), item]));
+          for (const raw of incoming || []) {
+            const item = typeof raw === 'object' && raw !== null ? raw : { [key]: raw };
+            const value = String(item[key] ?? '').trim();
+            if (!value) continue;
+            const mapKey = value.toLowerCase();
+            if (!map.has(mapKey)) map.set(mapKey, { ...item, [key]: value, added: item.added || new Date().toISOString() });
+          }
+          return Array.from(map.values());
+        };
+        const merged = {
+          users: merge(BL.users, imported.users, 'username'),
+          tags: merge(BL.tags, imported.tags, 'tag'),
+          packs: merge(BL.packs, imported.packs, 'id'),
+          words: merge(BL.words, imported.words, 'word'),
+        };
+        const data = await local('/blacklist', 'PUT', merged);
+        setBlacklist(data);
+        rerenderLists();
+        toast('Blacklist JSON импортирован', 'ok');
+      } catch (err) { toast('Не удалось импортировать JSON: ' + err.message, 'error'); }
+    });
     $('#blExport').addEventListener('click', () => downloadBlob('freesound-blacklist.json', JSON.stringify({ users: BL.users, tags: BL.tags, packs: BL.packs, words: BL.words }, null, 2)));
     $('#blCopy').addEventListener('click', () => navigator.clipboard.writeText(blItems(S.blKind).map((it) => (S.blKind === 'pack' ? `${it.id} ${it.name || ''}`.trim() : blValue(S.blKind, it))).join('\n')).then(() => toast('Список скопирован', { timeout: 1500 })));
 
@@ -1484,6 +1798,8 @@
 
   // ------------------------------------------------------------------ global click delegation
   document.addEventListener('click', async (e) => {
+    const card = e.target.closest('.card[data-id]');
+    if (card) selectSound(Number(card.dataset.id), false);
     const el = e.target.closest('[data-action]');
     if (!el) return;
     const action = el.dataset.action;
@@ -1498,6 +1814,11 @@
 
     switch (action) {
       case 'play': if (sound) playSound(sound); break;
+      case 'replay': if (sound) replaySound(sound); break;
+      case 'rate': if (sound) openRating(sound); break;
+      case 'rate-value': if (sound) { await submitRating(sound, Number(el.dataset.rating)); closeModal(); } break;
+      case 'comment': if (sound) openComment(sound); break;
+      case 'close-modal': closeModal(); break;
       case 'detail': if (id) openDetail(id); break;
       case 'author': if (user) openAuthor(user); break;
       case 'author-page': openAuthor(el.dataset.user, Number(el.dataset.page)); break;
@@ -1545,9 +1866,38 @@
     const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
     if (e.key === 'Escape') { hideCtx(); if (!$('#modal').classList.contains('hidden')) closeModal(); return; }
     if (typing) return;
+
+    const selected = () => selectedSound();
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.key === '/') { e.preventDefault(); $('#q').focus(); $('#q').select(); }
-    else if (e.key === 'ArrowRight' && e.shiftKey) playNext(1);
+    else if (e.altKey && e.key === 'ArrowRight') {
+      e.preventDefault();
+      const pages = S.results ? Math.ceil((S.results.count || 0) / S.pageSize) : 0;
+      if (S.page < pages) { runSearch(S.page + 1); $('#view-search .content').scrollTop = 0; }
+    } else if (e.altKey && e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (S.page > 1) { runSearch(S.page - 1); $('#view-search .content').scrollTop = 0; }
+    } else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 'j') {
+      e.preventDefault(); moveSelection(1);
+    } else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'k') {
+      e.preventDefault(); moveSelection(-1);
+    } else if (e.key === 'Home' && S.currentList.length) {
+      e.preventDefault(); selectSound(S.currentList[0]);
+    } else if (e.key === 'End' && S.currentList.length) {
+      e.preventDefault(); selectSound(S.currentList[S.currentList.length - 1]);
+    } else if (e.key === 'Enter' && selected()) {
+      e.preventDefault(); playSound(selected());
+    } else if (e.key.toLowerCase() === 'r' && selected()) {
+      e.preventDefault(); replaySound(selected());
+    } else if (e.key.toLowerCase() === 'd' && selected()) {
+      e.preventDefault(); download(selected(), previewQuality());
+    } else if (e.key.toLowerCase() === 'f' && selected()) {
+      e.preventDefault(); toggleFav(selected());
+    } else if (e.key.toLowerCase() === 'c' && selected()) {
+      e.preventDefault(); openComment(selected());
+    } else if (/^[1-5]$/.test(e.key) && selected()) {
+      e.preventDefault(); submitRating(selected(), Number(e.key));
+    } else if (e.key === 'ArrowRight' && e.shiftKey) playNext(1);
     else if (e.key === 'ArrowLeft' && e.shiftKey) playNext(-1);
   });
 
@@ -1589,6 +1939,8 @@
       $('#results').innerHTML = `<div class="empty"><h3>Подключите Freesound</h3>
         Нужен ключ API: создаётся за минуту. <div class="row" style="justify-content:center;margin-top:14px"><button class="btn primary" data-action="onboarding">${ic('key')} Настроить доступ</button></div></div>`;
     } else {
+      const mainSearch = readMainSearch();
+      if (mainSearch) { applySnapshot(mainSearch, { search: true }); return; }
       $('#results').innerHTML = `<div class="empty"><h3>Начните с запроса</h3>
         <ul>
           <li><b>rain loop -thunder</b> — минус исключает слово, кавычки ищут фразу.</li>
