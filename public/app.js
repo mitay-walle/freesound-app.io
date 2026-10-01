@@ -1707,9 +1707,16 @@
     try {
       S.status = await local('/status');
       const chip = $('#statusChip');
-      if (S.status.mock) { chip.textContent = 'MOCK-режим'; chip.className = 'chip warn'; }
-      else if (!S.status.hasApiKey && !S.status.oauth.connected) { chip.textContent = 'Нет ключа API'; chip.className = 'chip err'; }
-      else { chip.textContent = 'API подключён'; chip.className = 'chip ok'; }
+      if (S.status.mock) {
+        chip.textContent = 'MOCK-режим';
+        chip.className = 'chip warn';
+      } else if (!S.status.hasApiKey && !S.status.oauth.connected) {
+        chip.textContent = 'Нет ключа API';
+        chip.className = 'chip err';
+      } else {
+        chip.textContent = '';
+        chip.className = 'chip hidden';
+      }
       renderUserBlock();
     } catch (e) { toast('Сервер недоступен: ' + e.message, 'error'); }
   }
