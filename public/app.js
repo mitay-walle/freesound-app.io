@@ -1381,7 +1381,7 @@
     const box = $('#userBlock');
     const o = S.status && S.status.oauth;
     if (o && o.connected) {
-      box.innerHTML = `<button type="button" class="userbtn" id="userBtn">${avatarHtml(o.avatar, o.username)}<span>${esc(o.username || 'Freesound')}</span>${ic('chevron-down', 'sm')}</button>
+      box.innerHTML = `<button type="button" class="userbtn" id="userBtn" title="${esc(o.username || 'Freesound')}" aria-label="${esc(o.username || 'Freesound')}">${avatarHtml(o.avatar, o.username)}${ic('chevron-down', 'sm')}</button>
         <div class="umenu hidden" id="userMenu">
           <div class="uinfo">Вход через Freesound · токен до ${o.expiresAt ? esc(new Date(o.expiresAt).toLocaleString('ru-RU')) : '?'}</div>
           <button type="button" data-action="author" data-user="${esc(o.username || '')}">${ic('user')} Мои звуки</button>
