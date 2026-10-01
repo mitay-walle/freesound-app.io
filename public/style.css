@@ -130,7 +130,8 @@ h3 { margin: 14px 0 6px; font-size: 13px; font-weight: 500; color: var(--muted);
 
 /* ---------- header ---------- */
 .topbar { height: var(--header-h); background: var(--card); box-shadow: 0 1px 0 var(--line); position: relative; z-index: 10; display: grid; grid-template-columns: minmax(0, 1fr) minmax(620px, 820px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 0 20px; }
-.brand { justify-self: start; }
+.header-left { justify-self: start; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.header-left .theme-toggle { flex: none; }
 .brand { font-weight: 600; font-size: 16px; letter-spacing: .2px; white-space: nowrap; color: #fff; }
 .brand-link { display: inline-flex; align-items: center; gap: 0; color: #fff; }
 .brand-link:hover { color: #fff; }
