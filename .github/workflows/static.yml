@@ -37,7 +37,7 @@ jobs:
           path = Path("_site/index.html")
           html = path.read_text(encoding="utf-8")
           sha = os.environ["GITHUB_SHA"]
-          assets = ["style.css", "fields.js", "controls.js", "i18n/ru.js", "i18n/en.js", "i18n/zh.js", "i18n/ko.js", "ui-prefs.js", "static-adapter.js", "app.js", "assets/settings-waveform.svg"]
+          assets = ["style.css", "fields.js", "controls.js", "i18n/ru.js", "i18n/en.js", "i18n/zh.js", "i18n/ko.js", "ui-prefs.js", "static-adapter.js", "app.js", "assets/settings-waveform.webp"]
 
           html = html.replace('href="/style.css"', 'href="./style.css"')
           html = html.replace('src="/fields.js"', 'src="./fields.js"')
