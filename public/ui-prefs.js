@@ -159,6 +159,27 @@
       if (language === 'ko') return match[1] + ' / ' + match[2] + ' 페이지';
       return 'page ' + match[1] + ' of ' + match[2];
     }
+
+    match = /^(\d+) оценок$/.exec(value);
+    if (match) {
+      if (language === 'zh') return match[1] + ' 个评分';
+      if (language === 'ko') return '평가 ' + match[1] + '개';
+      return match[1] + ' ratings';
+    }
+
+    match = /^Скачать превью \((.+)\)$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '下载预览 (' + match[1] + ')';
+      if (language === 'ko') return '미리듣기 다운로드 (' + match[1] + ')';
+      return 'Download preview (' + match[1] + ')';
+    }
+
+    match = /^Тег «(.+)» в чёрный список$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '将标签“' + match[1] + '”加入黑名单';
+      if (language === 'ko') return '태그 “' + match[1] + '”을 블랙리스트에 추가';
+      return 'Blacklist tag “' + match[1] + '”';
+    }
     return value;
   }
 
@@ -191,7 +212,7 @@
       if (!element.hasAttribute(name)) continue;
       if (!(name in originals)) originals[name] = element.getAttribute(name);
       const original = originals[name];
-      element.setAttribute(name, language === 'en' ? translateValue(original) : original);
+      element.setAttribute(name, language === 'ru' ? original : translateValue(original));
     }
   }
 
@@ -331,7 +352,7 @@
   }
 
   const observer = new MutationObserver((records) => {
-    if (language !== 'en') return;
+    if (language === 'ru') return;
     for (const record of records) {
       for (const node of record.addedNodes) translateTree(node);
     }
