@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Freesound App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="./style.css?v=11">
+<link rel="stylesheet" href="./style.css?v=12">
 </head>
 <body>
 
@@ -417,6 +417,22 @@
   <div class="pactions" id="pActions"></div>
 </footer>
 
+<div id="firstRunDisclaimer" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="firstRunDisclaimerTitle">
+  <div class="modal-box narrow disclaimer-box">
+    <h2 id="firstRunDisclaimerTitle">О приложении</h2>
+    <div id="firstRunDisclaimerText" class="disclaimer-text">
+      <p><b>Это неофициальный некоммерческий клиент Freesound API.</b></p>
+      <p>Сайт не монетизируется, его автор не получает финансовой выгоды от его работы.</p>
+      <p>Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra.</p>
+      <p>Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.</p>
+    </div>
+    <div class="row disclaimer-actions">
+      <a class="btn ghost" href="https://freesound.org/" target="_blank" rel="noopener">Открыть Freesound</a>
+      <button type="button" class="btn primary" id="acceptFirstRunDisclaimer">Понятно</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal" class="modal hidden">
   <div class="modal-box" id="modalBox">
     <button class="modal-close" id="modalClose" title="Закрыть (Esc)"><span data-icon="x"></span></button>
@@ -429,7 +445,7 @@
 
 <script src="./fields.js?v=5"></script>
 <script src="./controls.js?v=5"></script>
-<script src="./ui-prefs.js?v=4"></script>
+<script src="./ui-prefs.js?v=5"></script>
 <script src="./static-adapter.js?v=3"></script>
 <script src="./app.js?v=11"></script>
 </body>
