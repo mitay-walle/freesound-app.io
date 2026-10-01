@@ -199,11 +199,15 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .side-foot { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
 .main-search-status { margin: 0; min-height: 16px; }
 .fgroup { background: var(--card); margin: 0 0 8px; }
-.fgroup > summary { cursor: pointer; padding: 9px 12px; font-weight: 500; font-size: 12.5px; color: var(--text); list-style: none; display: flex; align-items: center; user-select: none; }
+.fgroup > summary { cursor: pointer; padding: 9px 12px; font-weight: 500; font-size: 12.5px; color: var(--text); list-style: none; display: flex; align-items: center; user-select: none; position: relative; }
+.filter-summary-reset-host { padding-right: 36px !important; }
+.filter-reset-section { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; padding: 0; border: 0; background: transparent; color: var(--dim); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.filter-reset-section:hover { color: var(--accent-2); background: var(--card-3); }
+.filter-reset-section .ic { width: 13px; height: 13px; }
 .fgroup > summary::-webkit-details-marker { display: none; }
 .fgroup > summary::before { content: ""; width: 5px; height: 5px; border-right: 1.5px solid var(--dim); border-bottom: 1.5px solid var(--dim); transform: rotate(-45deg); margin-right: 10px; transition: transform .12s; }
 .fgroup[open] > summary::before { transform: rotate(45deg); }
-.fgroup > summary.active-flag::after { content: ""; width: 6px; height: 6px; background: var(--accent); margin-left: auto; }
+.fgroup > summary.active-flag::after { content: ""; width: 6px; height: 6px; background: var(--accent); margin-left: auto; margin-right: 4px; }
 .fgroup > *:not(summary) { margin-left: 12px; margin-right: 12px; }
 .fgroup > label:last-child, .fgroup > div:last-child, .fgroup > button:last-child, .fgroup > p:last-child, .fgroup > textarea:last-child { margin-bottom: 12px; }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0; }
@@ -221,9 +225,10 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .tag-suggest { position: absolute; left: 0; right: 0; top: calc(100% + 1px); z-index: 40; max-height: 220px; overflow-y: auto; background: var(--card-2); box-shadow: var(--shadow-sm); padding: 4px; }
 .tag-suggest button { display: block; width: 100%; border: 0; background: transparent; color: var(--muted); text-align: left; padding: 7px 9px; cursor: pointer; }
 .tag-suggest button:hover, .tag-suggest button.active { background: var(--card-3); color: var(--text); }
-.desc-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: start; margin: 8px 0; }
-.desc-row .d-inputs { display: flex; gap: 6px; margin-top: 4px; grid-column: 1; }
-.desc-row .d-del { grid-column: 2; grid-row: 1; }
+.desc-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: start; margin: 8px 0; }
+.desc-row .d-inputs { display: flex; gap: 6px; margin-top: 4px; grid-column: 1 / -1; }
+.desc-row .d-reset { grid-column: 2; grid-row: 1; }
+.desc-row .d-del { grid-column: 3; grid-row: 1; }
 .preview-box { background: var(--bg-deep); padding: 8px 10px; margin: 8px 0; }
 .preview-label { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
 #filterPreview { display: block; white-space: pre-wrap; word-break: break-all; background: transparent; padding: 4px 0 0; color: var(--text); }
@@ -466,6 +471,16 @@ details.plain[open] > summary::before { content: "– "; }
 
 /* ---------- custom controls ---------- */
 .ctl-label { color: var(--muted); font-size: 11.5px; margin: 10px 0 5px; }
+.filter-reset-label { display: flex; align-items: center; gap: 6px; }
+.filter-reset-label .filter-reset-field { margin-left: auto; }
+.filter-reset-host { position: relative; }
+.filter-reset-host > .filter-reset-field { float: right; margin: -1px 0 3px 6px; }
+.filter-reset-field { width: 20px; height: 20px; min-width: 20px; padding: 0; border: 0; background: transparent; color: var(--dim); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.filter-reset-field:hover { color: var(--accent-2); background: var(--card-3); }
+.filter-reset-field .ic { width: 12px; height: 12px; }
+.filter-reset-standalone { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px; align-items: start; }
+.filter-reset-range { margin-left: -2px; }
+.range > .filter-reset-field { align-self: center; }
 .ctl { margin-bottom: 4px; }
 .ctl + .ctl { margin-top: 6px; }
 .segc { display: flex; flex-wrap: wrap; gap: 3px; }
