@@ -557,8 +557,12 @@
       const { data } = await api('/usage/');
       const c = data.current || {};
       const b = c.burst || {};
-      const s = c.sustained || {};
-      $('#usageInfo').textContent = `За минуту: ${b.num_requests} / ${b.limit} · за сутки: ${s.num_requests} / ${s.limit}`;
+      const sustained = c.sustained || {};
+      const burstUsed = b.num ?? b.num_requests ?? '—';
+      const burstLimit = b.limit ?? '—';
+      const sustainedUsed = sustained.num ?? sustained.num_requests ?? '—';
+      const sustainedLimit = sustained.limit ?? '—';
+      $('#usageInfo').textContent = `За минуту: ${burstUsed} / ${burstLimit} · за сутки: ${sustainedUsed} / ${sustainedLimit}`;
     } catch (_) { /* silent */ }
   }
 
