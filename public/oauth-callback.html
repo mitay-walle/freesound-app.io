@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freesound App — OAuth</title>
+<style>
+body{margin:0;background:#1b1b1e;color:#f1f1f3;font:14px/1.5 "Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}.box{background:#242428;padding:28px 34px;max-width:460px}.ok{color:#35d07f}.err{color:#ff5a5a}a{color:#6a9bff}
+</style>
+</head>
+<body>
+<div class="box"><h2 id="title">Подключение Freesound…</h2><p id="message">Обмениваю код авторизации на токен.</p></div>
+<script src="./static-adapter.js"></script>
+<script>
+(async () => {
+  const title = document.getElementById('title');
+  const message = document.getElementById('message');
+  let payload;
+  try {
+    if (!window.FSStatic) throw new Error('Static adapter не активен.');
+    const oauth = await window.FSStatic.handleOAuthCallback();
+    title.textContent = 'Вход выполнен';
+    title.className = 'ok';
+    message.textContent = oauth.username ? `Вы вошли как ${oauth.username}.` : 'Аккаунт Freesound подключён.';
+    payload = { type: 'fs-oauth', ok: true, username: oauth.username || null };
+  } catch (e) {
+    title.textContent = 'Вход не удался';
+    title.className = 'err';
+    message.textContent = e.message || String(e);
+    payload = { type: 'fs-oauth', ok: false, error: e.message || String(e) };
+  }
+  try {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(payload, location.origin);
+      setTimeout(() => window.close(), 500);
+      return;
+    }
+  } catch (_) {}
+  const target = new URL('./', location.href);
+  target.search = '';
+  target.hash = '#tab=settings';
+  setTimeout(() => location.replace(target.href), 900);
+})();
+</script>
+</body>
+</html>
