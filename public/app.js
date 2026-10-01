@@ -67,6 +67,11 @@
     copy: '<rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
     key: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
     'chevron-down': '<polyline points="6 9 12 15 18 9"/>',
+    'chevron-left': '<polyline points="15 18 9 12 15 6"/>',
+    'chevron-right': '<polyline points="9 18 15 12 9 6"/>',
+    'rotate-ccw': '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-9.5L1 10"/>',
+    moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
   };
@@ -605,7 +610,7 @@
   // ------------------------------------------------------------------ cards
   function waveHtml(s) {
     const wave = s.images && (s.images.waveform_m || s.images.waveform_l);
-    return `<div class="wave" data-action="play" title="Воспроизвести">${wave ? `<div class="wave-fill" style="--m:${cssUrl(wave)}"></div>` : ''}<span class="play-ic">${ic('play')}</span></div>`;
+    return `<div class="wave" data-action="play" title="Воспроизвести">${wave ? `<img class="wave-image" src="${esc(wave)}" alt="" loading="lazy">` : ''}<span class="play-ic">${ic('play')}</span></div>`;
   }
 
   function tagChip(t) {
@@ -758,9 +763,9 @@
     $('#pTitle').dataset.id = s.id;
     $('#pSub').textContent = `${s.username} · ${fmtDur(s.duration)} · ${licShort(s.license)}`;
     const wave = s.images && (s.images.waveform_l || s.images.waveform_m);
-    const m = wave ? cssUrl(wave) : 'none';
-    $('#pWaveBase').style.setProperty('--m', m);
-    $('#pWaveProg').style.setProperty('--m', m);
+    const image = wave ? cssUrl(wave) : 'none';
+    $('#pWaveBase').style.backgroundImage = image;
+    $('#pWaveProg').style.backgroundImage = image;
     setProgress(0);
     const isFav = S.favSet.has(s.id);
     $('#pActions').innerHTML = `<span data-id="${s.id}">
@@ -805,6 +810,11 @@
     const r = e.currentTarget.getBoundingClientRect();
     const d = audio.duration || S.current.duration || 0;
     if (d) audio.currentTime = ((e.clientX - r.left) / r.width) * d;
+  });
+  $('#pReplay').addEventListener('click', () => {
+    if (!S.current) return;
+    audio.currentTime = 0;
+    audio.play().catch((err) => toast('Не удалось воспроизвести: ' + err.message, 'error'));
   });
   $('#pLoop').addEventListener('click', () => { S.loop = !S.loop; audio.loop = S.loop; $('#pLoop').classList.toggle('on', S.loop); });
   $('#pAuto').addEventListener('click', () => { S.autoNext = !S.autoNext; localStorage.setItem('fs_autonext', S.autoNext ? '1' : '0'); $('#pAuto').classList.toggle('on', S.autoNext); });
@@ -859,7 +869,7 @@
           <a class="btn small ghost" href="${esc(s.url)}" target="_blank" rel="noopener">${ic('external')} freesound.org</a>
         </div>
         ${s.images && s.images.spectral_l ? `<img class="spectro" src="${esc(s.images.spectral_l)}" alt="спектрограмма" loading="lazy">` : ''}
-        ${s.images && s.images.waveform_l ? `<div class="pwave" style="height:80px;cursor:default"><div class="wave-fill base" style="--m:${cssUrl(s.images.waveform_l)};background:var(--accent);opacity:.9"></div></div>` : ''}
+        ${s.images && s.images.waveform_l ? `<div class="detail-wave"><img class="detail-wave-image" src="${esc(s.images.waveform_l)}" alt="" loading="lazy"></div>` : ''}
         <dl class="kv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v ?? '—'}</dd>`).join('')}</dl>
         ${s.tags && s.tags.length ? `<div class="tags">${s.tags.map(tagChip).join('')}</div>` : ''}
         <div class="fulldesc">${linkify(s.description || '')}</div>
