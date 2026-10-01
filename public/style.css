@@ -366,7 +366,8 @@ fieldset { border: 0; background: var(--card); padding: 14px 18px 16px; margin: 
 .color-setting, .contrast-setting { display: flex; align-items: center; gap: 10px; min-height: 34px; }
 .contrast-setting input[type="range"] { flex: 1; width: auto; }
 .contrast-setting span { width: 48px; text-align: right; font-family: var(--mono); color: var(--muted); }
-.result-visibility-settings { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.result-visibility-settings { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.result-visibility-settings > .ctl-label { color: var(--text); font-size: 12.5px; font-weight: 600; letter-spacing: .2px; }
 .visibility-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 7px 12px; margin-top: 8px; }
 .visibility-checks label { font-size: 12px; }
 .color-setting input[type="color"] { width: 48px; height: 32px; padding: 2px; border: 0; background: var(--bg-deep); cursor: pointer; }
@@ -390,10 +391,35 @@ fieldset { border: 0; background: var(--card); padding: 14px 18px 16px; margin: 
 .rating-choice .ic { width: 16px; height: 16px; }
 
 /* Settings has its own layout. Do not use the floated legend/grid rules from generic forms here. */
-#view-settings .page.narrow { width: min(860px, 100%); max-width: 860px; }
+#view-settings .page.narrow { width: min(1380px, 100%); max-width: 1380px; }
+.settings-layout { display: grid; grid-template-columns: minmax(0, 860px) minmax(320px, 420px); gap: 28px; align-items: start; }
+.settings-preview-rail { min-width: 0; }
+.settings-preview-sticky { position: sticky; top: 72px; display: flex; flex-direction: column; gap: 16px; }
+.settings-preview-title { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: .2px; }
+.settings-preview-block { background: var(--bg); box-shadow: 0 1px 0 var(--line), 0 8px 22px rgba(0, 0, 0, .08); padding: 12px; }
+.settings-preview-label { margin-bottom: 10px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .55px; }
+.settings-preview-card { pointer-events: none; }
+.settings-preview-list { grid-template-columns: 132px minmax(0, 1fr) auto; gap: 10px; padding: 10px; }
+.settings-preview-list .wave { width: 132px; height: 58px; }
+.settings-preview-grid { display: block; }
+.settings-preview-grid .card { width: 100%; }
+.settings-preview-grid .wave { height: 74px; }
+.settings-preview-grid .desc { display: block; }
+.settings-preview-wave { background: var(--bg-deep); }
+.settings-preview-waveform { position: absolute; inset: 7px 6px; opacity: var(--wave-opacity); background:
+  linear-gradient(90deg, transparent 0 2%, var(--accent) 2% 3%, transparent 3% 6%, var(--accent) 6% 8%, transparent 8% 12%, var(--accent) 12% 13%, transparent 13% 17%, var(--accent) 17% 19%, transparent 19% 24%, var(--accent) 24% 26%, transparent 26% 31%, var(--accent) 31% 32%, transparent 32% 37%, var(--accent) 37% 40%, transparent 40% 45%, var(--accent) 45% 46%, transparent 46% 51%, var(--accent) 51% 54%, transparent 54% 60%, var(--accent) 60% 62%, transparent 62% 68%, var(--accent) 68% 69%, transparent 69% 75%, var(--accent) 75% 78%, transparent 78% 84%, var(--accent) 84% 86%, transparent 86% 92%, var(--accent) 92% 94%, transparent 94% 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+}
+.settings-preview-card .card-media-actions { grid-template-columns: auto 1fr; }
+.settings-preview-card .media-btn { height: 26px; padding: 0 7px; font-size: 10.5px; }
+.settings-preview-card .card-title { font-size: 12px; }
+.settings-preview-card .card-meta, .settings-preview-card .card-sub, .settings-preview-card .desc { font-size: 10.5px; }
+.settings-preview-card .tag { font-size: 10px; padding: 1px 5px; }
+.settings-preview-card .card-actions { gap: 2px; }
+.settings-preview-card .card-actions .icon-btn { width: 24px; height: 24px; font-size: 11px; }
 #settingsForm { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 #settingsForm fieldset { display: block; min-width: 0; margin: 0; padding: 16px 18px 18px; }
-#settingsForm legend { float: none; display: block; width: auto; max-width: 100%; margin: 0 0 12px; padding: 0; color: var(--muted); font-size: 11px; letter-spacing: .3px; text-transform: uppercase; }
+#settingsForm legend { float: none; display: block; width: auto; max-width: 100%; margin: 0 0 14px; padding: 0; color: var(--text); font-size: 13px; font-weight: 600; letter-spacing: .45px; text-transform: uppercase; }
 #settingsForm label { min-width: 0; }
 #settingsForm input, #settingsForm select, #settingsForm textarea { min-width: 0; }
 #settingsForm .row3 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -603,6 +629,10 @@ html[data-theme="light"] input:focus, html[data-theme="light"] select:focus, htm
 html[data-theme="light"] .btn:hover { background: #ccd1dc; }
 html[data-theme="light"] .modal { background: rgba(35, 40, 50, .32); }
 
+@media (max-width: 1100px) {
+  .settings-layout { grid-template-columns: 1fr; }
+  .settings-preview-rail { display: none; }
+}
 @media (max-width: 820px) {
   .sidebar-resizer { display: none; }
   .settings-grid { grid-template-columns: 1fr; }

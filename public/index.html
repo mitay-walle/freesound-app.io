@@ -307,7 +307,8 @@ Shift+D — скачать оригинал"></button>
         <h2>Настройки</h2>
         <button type="submit" form="settingsForm" class="btn small primary">Сохранить</button>
       </div>
-      <form id="settingsForm">
+      <div class="settings-layout">
+        <form id="settingsForm">
         <fieldset class="settings-section interface-settings">
           <legend>Интерфейс</legend>
           <div class="settings-grid">
@@ -436,7 +437,93 @@ Shift+D — скачать оригинал"></button>
           </div>
           <div class="settings-doc-links"><a href="https://freesound.org/docs/api/resources_apiv2.html" target="_blank" rel="noopener">Usage resource ↗</a><a href="https://freesound.org/docs/api/" target="_blank" rel="noopener">API documentation ↗</a><a href="https://freesound.org/apiv2/apply" target="_blank" rel="noopener">API credentials ↗</a></div>
         </fieldset>
-      </form>
+        </form>
+        <aside class="settings-preview-rail" aria-label="Предпросмотр результатов">
+          <div class="settings-preview-sticky">
+            <div class="settings-preview-title">Предпросмотр</div>
+
+            <section class="settings-preview-block">
+              <div class="settings-preview-label">List</div>
+              <article class="card settings-preview-card settings-preview-list">
+                <div class="card-media">
+                  <div class="ui-part ui-waveform">
+                    <div class="wave settings-preview-wave"><div class="settings-preview-waveform"></div><span class="play-ic"></span></div>
+                  </div>
+                  <div class="card-media-actions">
+                    <button type="button" class="media-btn replay" tabindex="-1"><span>Replay</span></button>
+                    <button type="button" class="media-btn download" tabindex="-1"><span>Download</span></button>
+                  </div>
+                </div>
+                <div class="card-main">
+                  <div class="card-title"><a href="#" tabindex="-1">Rain on city window.wav</a></div>
+                  <div class="card-meta ui-part ui-technical">12.4 s · WAV · 48 kHz · 24 bit · stereo</div>
+                  <div class="card-sub">
+                    <span class="ui-part ui-author"><a href="#" class="author" tabindex="-1">fieldrecorder</a></span>
+                    <span class="ui-part ui-rating">★ 4.8</span>
+                    <span class="ui-part ui-downloads">↓ 12.4k</span>
+                    <span class="ui-part ui-comments">◌ 18</span>
+                    <span class="lic by ui-part ui-license">CC BY</span>
+                    <span class="ui-part ui-date">2026-09-18</span>
+                    <span class="ui-part ui-pack">Urban Rain</span>
+                    <span class="dbadge ui-part ui-category">ambience</span>
+                  </div>
+                  <div class="tags ui-part ui-tags"><span class="tag">rain</span><span class="tag">window</span><span class="tag">city</span></div>
+                  <div class="desc ui-part ui-description">Steady rain recorded against a city apartment window.</div>
+                </div>
+                <div class="card-actions ui-part ui-actions">
+                  <button type="button" class="icon-btn ui-part ui-action-favorite" tabindex="-1">♥</button>
+                  <button type="button" class="icon-btn ui-part ui-action-rate" tabindex="-1">★</button>
+                  <button type="button" class="icon-btn ui-part ui-action-comment" tabindex="-1">◌</button>
+                  <button type="button" class="icon-btn ui-part ui-action-original" tabindex="-1">↓</button>
+                  <button type="button" class="icon-btn ui-part ui-action-similar" tabindex="-1">↝</button>
+                  <button type="button" class="icon-btn ui-part ui-action-freesound" tabindex="-1">↗</button>
+                </div>
+              </article>
+            </section>
+
+            <section class="settings-preview-block">
+              <div class="settings-preview-label">Grid</div>
+              <div class="results grid settings-preview-grid">
+                <article class="card settings-preview-card">
+                  <div class="card-media">
+                    <div class="ui-part ui-waveform">
+                      <div class="wave settings-preview-wave"><div class="settings-preview-waveform"></div><span class="play-ic"></span></div>
+                    </div>
+                    <div class="card-media-actions">
+                      <button type="button" class="media-btn replay" tabindex="-1"><span>Replay</span></button>
+                      <button type="button" class="media-btn download" tabindex="-1"><span>Download</span></button>
+                    </div>
+                  </div>
+                  <div class="card-main">
+                    <div class="card-title"><a href="#" tabindex="-1">Rain on city window.wav</a></div>
+                    <div class="card-meta ui-part ui-technical">12.4 s · WAV · 48 kHz</div>
+                    <div class="card-sub">
+                      <span class="ui-part ui-author"><a href="#" class="author" tabindex="-1">fieldrecorder</a></span>
+                      <span class="ui-part ui-rating">★ 4.8</span>
+                      <span class="ui-part ui-downloads">↓ 12.4k</span>
+                      <span class="ui-part ui-comments">◌ 18</span>
+                      <span class="lic by ui-part ui-license">CC BY</span>
+                      <span class="ui-part ui-date">2026-09-18</span>
+                      <span class="ui-part ui-pack">Urban Rain</span>
+                      <span class="dbadge ui-part ui-category">ambience</span>
+                    </div>
+                    <div class="tags ui-part ui-tags"><span class="tag">rain</span><span class="tag">window</span><span class="tag">city</span></div>
+                    <div class="desc ui-part ui-description">Steady rain recorded against a city apartment window.</div>
+                  </div>
+                  <div class="card-actions ui-part ui-actions">
+                    <button type="button" class="icon-btn ui-part ui-action-favorite" tabindex="-1">♥</button>
+                    <button type="button" class="icon-btn ui-part ui-action-rate" tabindex="-1">★</button>
+                    <button type="button" class="icon-btn ui-part ui-action-comment" tabindex="-1">◌</button>
+                    <button type="button" class="icon-btn ui-part ui-action-original" tabindex="-1">↓</button>
+                    <button type="button" class="icon-btn ui-part ui-action-similar" tabindex="-1">↝</button>
+                    <button type="button" class="icon-btn ui-part ui-action-freesound" tabindex="-1">↗</button>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </div>
       <div class="settings-bottom-sticky">
         <button type="submit" form="settingsForm" class="btn primary">Сохранить настройки</button>
       </div>
