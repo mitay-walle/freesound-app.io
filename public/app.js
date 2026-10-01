@@ -74,6 +74,7 @@
     sun: '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
+    keyboard: '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="6" y1="9" x2="6.01" y2="9"/><line x1="10" y1="9" x2="10.01" y2="9"/><line x1="14" y1="9" x2="14.01" y2="9"/><line x1="18" y1="9" x2="18.01" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/>',
   };
   const ic = (name, cls = '', fill = false) => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
   function mountIcons(root = document) {
@@ -968,12 +969,47 @@
     return sound;
   }
 
-  function moveSelection(dir) {
-    if (!S.currentList.length) return null;
+  function currentSelectionIndex() {
     let index = S.selectedId ? S.currentList.indexOf(S.selectedId) : -1;
     if (index < 0 && S.current) index = S.currentList.indexOf(S.current.id);
+    return index;
+  }
+
+  function moveSelection(dir) {
+    if (!S.currentList.length) return null;
+    let index = currentSelectionIndex();
     index = Math.min(S.currentList.length - 1, Math.max(0, index < 0 ? (dir > 0 ? 0 : S.currentList.length - 1) : index + dir));
     return selectSound(S.currentList[index]);
+  }
+
+  function activeGridColumns() {
+    if (S.view !== 'grid') return 1;
+    const container = document.querySelector('.view.active .results.grid');
+    if (!container) return 1;
+    const columns = getComputedStyle(container).gridTemplateColumns.split(' ').filter(Boolean).length;
+    return Math.max(1, columns);
+  }
+
+  function moveGridSelection(key) {
+    if (!S.currentList.length) return null;
+    const columns = activeGridColumns();
+    if (columns <= 1) {
+      if (key === 'ArrowUp') return moveSelection(-1);
+      if (key === 'ArrowDown') return moveSelection(1);
+      return null;
+    }
+
+    let index = currentSelectionIndex();
+    if (index < 0) index = 0;
+    const column = index % columns;
+    let target = index;
+
+    if (key === 'ArrowLeft' && column > 0) target = index - 1;
+    else if (key === 'ArrowRight' && column < columns - 1 && index + 1 < S.currentList.length) target = index + 1;
+    else if (key === 'ArrowUp' && index - columns >= 0) target = index - columns;
+    else if (key === 'ArrowDown' && index + columns < S.currentList.length) target = index + columns;
+
+    return target === index ? selectSound(S.currentList[index], false) : selectSound(S.currentList[target]);
   }
 
   // ------------------------------------------------------------------ context menu (instant blacklist)
@@ -2124,6 +2160,12 @@
     } else if (e.altKey && e.key === 'ArrowLeft') {
       e.preventDefault();
       if (S.page > 1) { runSearch(S.page - 1); $('#view-search .content').scrollTop = 0; }
+    } else if (e.shiftKey && e.key === 'ArrowRight') {
+      e.preventDefault(); playNext(1);
+    } else if (e.shiftKey && e.key === 'ArrowLeft') {
+      e.preventDefault(); playNext(-1);
+    } else if (S.view === 'grid' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      e.preventDefault(); moveGridSelection(e.key);
     } else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 'j') {
       e.preventDefault(); moveSelection(1);
     } else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'k') {
@@ -2136,6 +2178,8 @@
       e.preventDefault(); playSound(selected());
     } else if (e.key.toLowerCase() === 'r' && selected()) {
       e.preventDefault(); replaySound(selected());
+    } else if (e.shiftKey && e.key.toLowerCase() === 'd' && selected()) {
+      e.preventDefault(); download(selected(), 'original');
     } else if (e.key.toLowerCase() === 'd' && selected()) {
       e.preventDefault(); download(selected(), previewQuality());
     } else if (e.key.toLowerCase() === 'f' && selected()) {
@@ -2144,8 +2188,7 @@
       e.preventDefault(); openComment(selected());
     } else if (/^[1-5]$/.test(e.key) && selected()) {
       e.preventDefault(); submitRating(selected(), Number(e.key));
-    } else if (e.key === 'ArrowRight' && e.shiftKey) playNext(1);
-    else if (e.key === 'ArrowLeft' && e.shiftKey) playNext(-1);
+    }
   });
 
   // ------------------------------------------------------------------ init

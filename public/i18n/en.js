@@ -171,6 +171,8 @@ window.FSI18N.en = {
     "Комментарий — кнопка": "Comment — button",
     "Оригинал — кнопка": "Original — button",
     "Похожие — кнопка": "Similar — button",
-    "Freesound — кнопка": "Freesound — button"
+    "Freesound — кнопка": "Freesound — button",
+    "Хоткеи": "Shortcuts",
+    "Хоткеи:\nSpace — play / pause\n↑ / ↓ — навигация\n← / → — навигация в сетке\nEnter — проиграть выбранный\nR — проиграть заново\nD — скачать превью\nShift+D — скачать оригинал\nF — избранное\nC — комментарий\n1–5 — оценка\n/ — фокус поиска\nAlt+← / Alt+→ — страница\nShift+← / Shift+→ — предыдущий / следующий звук": "Shortcuts:\nSpace — play / pause\n↑ / ↓ — navigate\n← / → — navigate grid\nEnter — play selected\nR — replay\nD — download preview\nShift+D — download original\nF — favorite\nC — comment\n1–5 — rate\n/ — focus search\nAlt+← / Alt+→ — page\nShift+← / Shift+→ — previous / next sound"
   }
 };
