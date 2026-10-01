@@ -273,7 +273,7 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .results.grid .card-actions { flex-direction: row; justify-content: flex-start; }
 .results.grid .desc { display: none; }
 
-.pager { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 18px 0; }
+.pager { position: sticky; bottom: 0; z-index: 7; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 18px 0 0; padding: 10px 0 12px; background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
 .pager button { background: var(--card); border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); font-weight: 500; }
 .pager button:hover:not(:disabled) { color: var(--text); background: var(--card-3); }
 .pager button.active { background: var(--accent); color: #fff; }
