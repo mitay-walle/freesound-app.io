@@ -15,6 +15,7 @@
     searches: 'fs_static_searches',
     oauth: 'fs_static_oauth',
     downloads: 'fs_static_downloads',
+    attribution: 'fs_static_attribution',
     oauthState: 'fs_static_oauth_state',
   };
   const DEFAULT_SETTINGS = {
@@ -40,6 +41,126 @@
     /^\/me\/?/,
   ];
   const FILTERABLE = [/^\/search\/?(text\/?)?$/, /^\/sounds\/\d+\/similar\/?$/];
+
+  const HANDLE_DB = 'fs_static_file_handles';
+  const HANDLE_STORE = 'handles';
+  const DOWNLOAD_HANDLE_KEY = 'download-directory';
+  const supportsDirectoryPicker = typeof window.showDirectoryPicker === 'function';
+
+  function openHandleDb() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(HANDLE_DB, 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains(HANDLE_STORE)) request.result.createObjectStore(HANDLE_STORE);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function getStoredHandle() {
+    if (!supportsDirectoryPicker || !window.indexedDB) return null;
+    try {
+      const db = await openHandleDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(HANDLE_STORE, 'readonly');
+        const request = tx.objectStore(HANDLE_STORE).get(DOWNLOAD_HANDLE_KEY);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (_) { return null; }
+  }
+
+  async function storeHandle(handle) {
+    const db = await openHandleDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(HANDLE_STORE, 'readwrite');
+      tx.objectStore(HANDLE_STORE).put(handle, DOWNLOAD_HANDLE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function removeStoredHandle() {
+    if (!window.indexedDB) return;
+    try {
+      const db = await openHandleDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(HANDLE_STORE, 'readwrite');
+        tx.objectStore(HANDLE_STORE).delete(DOWNLOAD_HANDLE_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (_) { /* ignore */ }
+  }
+
+  async function ensureWritePermission(handle, request = false) {
+    if (!handle) return false;
+    const opts = { mode: 'readwrite' };
+    try {
+      if (await handle.queryPermission(opts) === 'granted') return true;
+      if (request && await handle.requestPermission(opts) === 'granted') return true;
+    } catch (_) { /* ignore */ }
+    return false;
+  }
+
+  async function chooseDownloadFolder() {
+    if (!supportsDirectoryPicker) throw new Error('This browser does not support app-specific download folders.');
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await storeHandle(handle);
+    return { name: handle.name };
+  }
+
+  async function clearDownloadFolder() {
+    await removeStoredHandle();
+    return { name: null };
+  }
+
+  async function getDownloadFolderInfo() {
+    const handle = await getStoredHandle();
+    if (!handle) return { name: null, permission: 'none' };
+    let permission = 'prompt';
+    try { permission = await handle.queryPermission({ mode: 'readwrite' }); } catch (_) { /* ignore */ }
+    return { name: handle.name, permission };
+  }
+
+  async function writeBlobToSelectedFolder(blob, filename) {
+    const handle = await getStoredHandle();
+    if (!handle || !await ensureWritePermission(handle, true)) return false;
+    const fileHandle = await handle.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return true;
+  }
+
+  function attributionLine(rec) {
+    return `"${rec.name}" by ${rec.username} — ${rec.url} — License: ${rec.license}${rec.file ? ` — file: ${rec.file}` : ''}\n`;
+  }
+
+  async function appendAttribution(rec) {
+    const line = attributionLine(rec);
+    const content = String(read(STORAGE.attribution, '')) + line;
+    write(STORAGE.attribution, content);
+
+    const handle = await getStoredHandle();
+    if (!handle || !await ensureWritePermission(handle, false)) return;
+    try {
+      const fileHandle = await handle.getFileHandle('_attribution.txt', { create: true });
+      const file = await fileHandle.getFile();
+      const writable = await fileHandle.createWritable({ keepExistingData: true });
+      await writable.seek(file.size);
+      await writable.write(line);
+      await writable.close();
+    } catch (_) { /* local copy remains available */ }
+  }
+
+  async function clearAttributionFile() {
+    write(STORAGE.attribution, '');
+    const handle = await getStoredHandle();
+    if (!handle || !await ensureWritePermission(handle, false)) return;
+    try { await handle.removeEntry('_attribution.txt'); } catch (_) { /* already absent */ }
+  }
 
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
@@ -296,14 +417,17 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const blob = await response.blob();
       bytes = blob.size;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      const written = await writeBlobToSelectedFolder(blob, file);
+      if (!written) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }
     } catch (_) {
       const a = document.createElement('a');
       a.href = sourceUrl;
@@ -318,6 +442,7 @@
     log.items.unshift(rec);
     log.items = log.items.slice(0, 5000);
     write(STORAGE.downloads, log);
+    if (settings().attributionLog) await appendAttribution(rec);
     return rec;
   }
 
@@ -429,6 +554,14 @@
       if (method === 'PUT') return jsonResponse(200, write(STORAGE.searches, { items: Array.isArray(body.items) ? body.items : [] }));
     }
     if (path === '/downloads' && method === 'GET') return jsonResponse(200, read(STORAGE.downloads, { items: [] }));
+    if (path === '/attribution' && method === 'GET') {
+      const content = String(read(STORAGE.attribution, ''));
+      return jsonResponse(200, { content, exists: Boolean(content), bytes: new Blob([content]).size });
+    }
+    if (path === '/attribution' && method === 'DELETE') {
+      await clearAttributionFile();
+      return jsonResponse(200, { content: '', exists: false, bytes: 0 });
+    }
     if (path === '/download' && method === 'POST') {
       try { return jsonResponse(200, await browserDownload(body)); }
       catch (e) { return errorResponse(e.status || 500, e.message); }
@@ -488,5 +621,14 @@
     return finishOAuthCode(code);
   }
 
-  window.FSStatic = { active: true, redirectUri, handleOAuthCallback, baseUrl: () => baseUrl().href };
+  window.FSStatic = {
+    active: true,
+    supportsDirectoryPicker,
+    redirectUri,
+    handleOAuthCallback,
+    baseUrl: () => baseUrl().href,
+    chooseDownloadFolder,
+    clearDownloadFolder,
+    getDownloadFolderInfo,
+  };
 })();
