@@ -198,6 +198,20 @@
       if (language === 'ko') return '태그 “' + match[1] + '”을 블랙리스트에 추가';
       return 'Blacklist tag “' + match[1] + '”';
     }
+
+    match = /^Обновлено (.+)$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '更新于 ' + match[1];
+      if (language === 'ko') return '업데이트 ' + match[1];
+      return 'Updated ' + match[1];
+    }
+
+    match = /^Не удалось получить лимиты: (.+)$/.exec(value);
+    if (match) {
+      if (language === 'zh') return '无法获取限额：' + match[1];
+      if (language === 'ko') return '한도를 가져오지 못했습니다: ' + match[1];
+      return 'Failed to get limits: ' + match[1];
+    }
     return value;
   }
 
@@ -231,6 +245,10 @@
       if (!(name in originals)) originals[name] = element.getAttribute(name);
       const original = originals[name];
       element.setAttribute(name, language === 'ru' ? original : translateValue(original));
+    }
+    if (element.hasAttribute('data-i18n-value')) {
+      const originalValue = element.getAttribute('data-i18n-value');
+      element.value = language === 'ru' ? originalValue : translateValue(originalValue);
     }
   }
 
@@ -395,5 +413,5 @@
   bindFirstRunDisclaimer();
   observer.observe(document.body, { childList: true, subtree: true });
 
-  window.FSUI = { applyTheme, applyAccent, applyContrast, applyWaveformContrast, applyTextScale, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed };
+  window.FSUI = { applyTheme, applyAccent, applyContrast, applyWaveformContrast, applyTextScale, applyLanguage, applyVisibility, setSidebarWidth, setSidebarCollapsed, translateValue };
 })();

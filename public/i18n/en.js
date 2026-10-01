@@ -235,6 +235,13 @@ window.FSI18N.en = {
     " — последние 24 часа.": " — last 24 hours.",
     "Так бывает, когда в Callback URL указан ": "This happens when the Callback URL is ",
     ". Скопируйте код со страницы Freesound и вставьте сюда.": ". Copy the code from the Freesound page and paste it here.",
-    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound uses two windows: burst — requests from the last minute, sustained — requests from the last 24 hours."
+    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound uses two windows: burst — requests from the last minute, sustained — requests from the last 24 hours.",
+    "Создаются один раз на": "Created once at",
+    ". В поле": ". In the",
+    "формы Freesound укажите:": "field of the Freesound form, enter:",
+    "Так бывает, когда в Callback URL указан": "This happens when the Callback URL is",
+    "Files are written directly to this folder. This does not change the browser global Downloads folder.": "Files are written directly to this folder. This does not change the browser global Downloads folder.",
+    "This browser does not support app-specific folder access. Downloads use the browser default folder.": "This browser does not support app-specific folder access. Downloads use the browser default folder.",
+    "Local server mode: this path is used directly by Node.js.": "Local server mode: this path is used directly by Node.js."
   }
 };

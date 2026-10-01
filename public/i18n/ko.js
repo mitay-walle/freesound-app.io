@@ -233,7 +233,14 @@ window.FSI18N.ko = {
     " — последняя минута · ": " — 최근 1분 · ",
     " — последние 24 часа.": " — 최근 24시간.",
     "Так бывает, когда в Callback URL указан ": "Callback URL이 ",
-    ". Скопируйте код со страницы Freesound и вставьте сюда.": " 로 설정된 경우 발생합니다. Freesound 페이지의 코드를 복사해 여기에 붙여넣으세요.",
-    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound는 두 개의 시간 창을 사용합니다: burst — 최근 1분의 요청, sustained — 최근 24시간의 요청."
+    ". Скопируйте код со страницы Freesound и вставьте сюда.": "로 설정된 경우 발생합니다. Freesound 페이지의 코드를 복사해 여기에 붙여넣으세요.",
+    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound는 두 개의 시간 창을 사용합니다: burst — 최근 1분의 요청, sustained — 최근 24시간의 요청.",
+    "Создаются один раз на": "API 자격 증명은",
+    ". В поле": "에서 한 번만 생성합니다. Freesound 양식의",
+    "формы Freesound укажите:": "필드에 다음을 입력하세요:",
+    "Так бывает, когда в Callback URL указан": "Callback URL이",
+    "Files are written directly to this folder. This does not change the browser global Downloads folder.": "파일이 이 폴더에 직접 저장됩니다. 브라우저의 전역 다운로드 폴더는 변경되지 않습니다.",
+    "This browser does not support app-specific folder access. Downloads use the browser default folder.": "이 브라우저는 앱 전용 폴더 접근을 지원하지 않습니다. 브라우저 기본 다운로드 폴더를 사용합니다.",
+    "Local server mode: this path is used directly by Node.js.": "로컬 서버 모드: Node.js가 이 경로를 직접 사용합니다."
   }
 };

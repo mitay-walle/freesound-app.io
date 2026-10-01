@@ -233,7 +233,14 @@ window.FSI18N.zh = {
     " — последняя минута · ": " — 最近 1 分钟 · ",
     " — последние 24 часа.": " — 最近 24 小时。",
     "Так бывает, когда в Callback URL указан ": "当 Callback URL 设置为 ",
-    ". Скопируйте код со страницы Freesound и вставьте сюда.": " 时会出现这种情况。请从 Freesound 页面复制代码并粘贴到这里。",
-    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound 使用两个时间窗口：burst — 最近 1 分钟的请求，sustained — 最近 24 小时的请求。"
+    ". Скопируйте код со страницы Freesound и вставьте сюда.": "时会出现这种情况。请从 Freesound 页面复制代码并粘贴到这里。",
+    "Freesound считает два окна: burst — запросы за последнюю минуту, sustained — запросы за последние 24 часа.": "Freesound 使用两个时间窗口：burst — 最近 1 分钟的请求，sustained — 最近 24 小时的请求。",
+    "Создаются один раз на": "API 凭据只需在",
+    ". В поле": "创建一次。在 Freesound 表单的",
+    "формы Freesound укажите:": "字段中填写：",
+    "Так бывает, когда в Callback URL указан": "当 Callback URL 设置为",
+    "Files are written directly to this folder. This does not change the browser global Downloads folder.": "文件会直接写入此文件夹。这不会更改浏览器全局的下载文件夹。",
+    "This browser does not support app-specific folder access. Downloads use the browser default folder.": "此浏览器不支持应用专用文件夹访问。下载将使用浏览器默认文件夹。",
+    "Local server mode: this path is used directly by Node.js.": "本地服务器模式：Node.js 会直接使用此路径。"
   }
 };

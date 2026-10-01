@@ -1865,17 +1865,25 @@
         choose.classList.remove('hidden');
         clear.classList.remove('hidden');
         const info = await window.FSStatic.getDownloadFolderInfo();
-        input.value = info && info.name ? info.name : 'Browser default Downloads';
+        if (info && info.name) {
+          input.removeAttribute('data-i18n-value');
+          input.value = info.name;
+        } else {
+          input.setAttribute('data-i18n-value', 'Browser default Downloads');
+          input.value = window.FSUI && window.FSUI.translateValue ? window.FSUI.translateValue('Browser default Downloads') : 'Browser default Downloads';
+        }
         hint.textContent = info && info.name
           ? 'Files are written directly to this folder. This does not change the browser global Downloads folder.'
           : 'No app-specific folder selected. Downloads use the browser default behavior.';
       } else {
         choose.classList.add('hidden');
         clear.classList.add('hidden');
-        input.value = 'Browser default Downloads';
+        input.setAttribute('data-i18n-value', 'Browser default Downloads');
+        input.value = window.FSUI && window.FSUI.translateValue ? window.FSUI.translateValue('Browser default Downloads') : 'Browser default Downloads';
         hint.textContent = 'This browser does not support app-specific folder access. Downloads use the browser default folder.';
       }
     } else {
+      input.removeAttribute('data-i18n-value');
       input.readOnly = false;
       choose.classList.add('hidden');
       clear.classList.add('hidden');
