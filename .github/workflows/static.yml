@@ -29,10 +29,27 @@ jobs:
         run: |
           mkdir -p _site
           cp -R public/. _site/
-          sed -i 's|href="/style.css"|href="./style.css?v=3"|' _site/index.html
-          sed -i 's|src="/fields.js"|src="./fields.js"|' _site/index.html
-          sed -i 's|src="/controls.js"|src="./controls.js"|' _site/index.html
-          sed -i 's|src="/app.js"|src="./static-adapter.js?v=2"></script><script src="./app.js"|' _site/index.html
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          path = Path("_site/index.html")
+          html = path.read_text(encoding="utf-8")
+          sha = os.environ["GITHUB_SHA"]
+          assets = ["style.css", "fields.js", "controls.js", "ui-prefs.js", "static-adapter.js", "app.js"]
+
+          html = html.replace('href="/style.css"', 'href="./style.css"')
+          html = html.replace('src="/fields.js"', 'src="./fields.js"')
+          html = html.replace('src="/controls.js"', 'src="./controls.js"')
+          html = html.replace('src="/app.js"', 'src="./static-adapter.js"></script><script src="./app.js"')
+
+          for asset in assets:
+              pattern = r'(\./' + re.escape(asset) + r')(?:\?v=[^"\']+)?'
+              html = re.sub(pattern, lambda match: match.group(1) + "?v=" + sha, html)
+
+          path.write_text(html, encoding="utf-8")
+          PY
           touch _site/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
