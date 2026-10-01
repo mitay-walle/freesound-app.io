@@ -93,7 +93,7 @@
     favSet: new Set(),
     searches: [],
     query: '',
-    sort: 'score',
+    sort: localStorage.getItem('fs_sort') || 'score',
     page: 1,
     pageSize: 30,
     groupByPack: false,
@@ -1408,7 +1408,7 @@
   function applySnapshot(snap, { search = true } = {}) {
     S.query = snap.query || ''; $('#q').value = S.query;
     writeFilters(snap.filters);
-    S.sort = snap.sort || 'score'; $('#sort').value = S.sort;
+    S.sort = snap.sort || localStorage.getItem('fs_sort') || 'score'; $('#sort').value = S.sort; localStorage.setItem('fs_sort', S.sort);
     S.groupByPack = Boolean(snap.groupByPack); $('#groupByPack').checked = S.groupByPack;
     if (snap.pageSize) { S.pageSize = Number(snap.pageSize); $('#pageSize').value = String(S.pageSize); }
     if (search) runSearch(snap.page || 1);
@@ -1629,6 +1629,9 @@
     $('#licCommercial').addEventListener('click', () => { C.lic.set(['Creative Commons 0', 'Attribution']); updateFilterPreview(); });
     $('#f_simSpace').innerHTML = FS.SIMILARITY_SPACES.map((s) => `<option value="${s.value}">${esc(s.label)}</option>`).join('');
     $('#sort').innerHTML = FS.SORTS.map((s) => `<option value="${s.value}">${esc(s.label)}</option>`).join('');
+    if (!FS.SORTS.some((item) => item.value === S.sort)) S.sort = 'score';
+    $('#sort').value = S.sort;
+    localStorage.setItem('fs_sort', S.sort);
     $('#durPresets').innerHTML = FS.DURATION_PRESETS.map((p) => `<button type="button" data-min="${p.min}" data-max="${p.max}">${esc(p.label)}</button>`).join('') + '<button type="button" data-min="" data-max="">любая</button>';
     $$('#durPresets button').forEach((b) => b.addEventListener('click', () => { C.dur.set(b.dataset.min, b.dataset.max); updateFilterPreview(); }));
     $('#datePresets').innerHTML = FS.DATE_PRESETS.map((p) => `<button type="button" data-days="${p.days}">${esc(p.label)}</button>`).join('') + '<button type="button" data-days="">любая</button>';
@@ -1659,7 +1662,7 @@
     $('#deleteFilterPreset').addEventListener('click', () => deleteFilterPreset($('#filterPresets').value));
     $('#saveMainSearch').addEventListener('click', saveMainSearch);
     $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); runSearch(1); });
-    $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; if (S.results) runSearch(1); });
+    $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; localStorage.setItem('fs_sort', S.sort); if (S.results) runSearch(1); });
     $('#pageSize').addEventListener('change', (e) => { S.pageSize = Number(e.target.value); if (S.results) runSearch(1); });
     $('#groupByPack').addEventListener('change', (e) => { S.groupByPack = e.target.checked; if (S.results) runSearch(1); });
     $$('#viewSeg button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
