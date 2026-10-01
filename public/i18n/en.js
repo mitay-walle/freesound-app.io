@@ -107,7 +107,7 @@ window.FSI18N.en = {
     "Максимум записей одного вида в запросе": "Maximum entries of one type per request",
     "Проверить лимиты API": "Check API limits",
     "Ничего не играет": "Nothing is playing",
-    "Повтор": "Loop",
+    "Повтор": "Replay",
     "Автоматически играть следующий": "Automatically play next",
     "Проиграть заново": "Replay",
     "Любая": "Any",
@@ -225,6 +225,15 @@ window.FSI18N.en = {
     "История поиска": "Search history",
     "Поиск сохранён": "Search saved",
     "Удалить": "Delete",
-    "Неофициальный некоммерческий клиент Freesound API. Сайт не монетизируется, его автор не получает финансовой выгоды от его работы. Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra. Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.": "Unofficial, non-commercial client for the Freesound API. This site is not monetized and its author receives no financial benefit from operating it. This site is not part of Freesound and is not affiliated with the Music Technology Group / Universitat Pompeu Fabra. Data and sounds are loaded from Freesound; use of the API and sounds is governed by Freesound's terms and the license of each sound."
+    "Неофициальный некоммерческий клиент Freesound API. Сайт не монетизируется, его автор не получает финансовой выгоды от его работы. Этот сайт не является частью Freesound и не аффилирован с Music Technology Group / Universitat Pompeu Fabra. Данные и звуки загружаются с Freesound; использование API и звуков регулируется правилами Freesound и лицензией конкретного звука.": "Unofficial, non-commercial client for the Freesound API. This site is not monetized and its author receives no financial benefit from operating it. This site is not part of Freesound and is not affiliated with the Music Technology Group / Universitat Pompeu Fabra. Data and sounds are loaded from Freesound; use of the API and sounds is governed by Freesound's terms and the license of each sound.",
+    "Создаются один раз на ": "Created once at ",
+    ". В поле ": " once. In the ",
+    " формы Freesound укажите:": " field of the Freesound form, enter:",
+    "No app-specific folder selected. Downloads use the browser default behavior.": "No app-specific folder selected. Downloads use the browser default behavior.",
+    "Browser default Downloads": "Browser default Downloads",
+    " — последняя минута · ": " — last minute · ",
+    " — последние 24 часа.": " — last 24 hours.",
+    "Так бывает, когда в Callback URL указан ": "This happens when the Callback URL is ",
+    ". Скопируйте код со страницы Freesound и вставьте сюда.": ". Copy the code from the Freesound page and paste it here."
   }
 };
