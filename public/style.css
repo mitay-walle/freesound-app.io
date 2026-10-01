@@ -292,8 +292,8 @@ main { height: calc(100vh - var(--header-h) - var(--player-h)); }
 .lic.nc { color: var(--yellow); background: rgba(245, 197, 66, .12); }
 .dbadge { background: var(--card-3); padding: 1px 6px; font-size: 10.5px; color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
-.tag { background: var(--bg-deep); padding: 2px 8px; font-size: 11px; color: var(--muted); cursor: pointer; transition: color .12s, background .12s; }
-.tag:hover { color: var(--accent-2); background: var(--accent-soft); }
+.tag { background: transparent; border: 1px solid transparent; padding: 1px 7px; font-size: 11px; color: var(--muted); cursor: pointer; transition: color .12s, background .12s, border-color .12s; }
+.tag:hover, .tag:focus-visible { color: var(--accent-2); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .desc { color: var(--dim); font-size: 11.5px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
 .card-actions { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; }
 .results.grid .card { grid-template-columns: 1fr; gap: 8px; }
