@@ -542,8 +542,10 @@ details.plain[open] > summary::before { content: "– "; }
 .tag:hover .tag-ban { display: inline-flex; }
 .tag .tag-ban:hover { color: var(--red); }
 .tag .tag-ban .ic { width: 11px; height: 11px; }
-.card-sub .icon-btn.mini { padding: 1px; margin-left: -6px; }
-.card-sub .icon-btn.mini .ic { width: 11px; height: 11px; }
+.card-sub .ui-pack { gap: 2px; }
+.card-sub .ui-pack > a { display: inline-flex; align-items: center; gap: 2px; }
+.card-sub .icon-btn.mini { width: 16px; height: 16px; padding: 0; margin-left: 0; flex: none; }
+.card-sub .icon-btn.mini .ic { width: 10px; height: 10px; }
 .ctxmenu { position: fixed; z-index: 70; background: var(--card-2); box-shadow: var(--shadow); min-width: 220px; max-width: 320px; padding: 6px 0; font-size: 12.5px; }
 .ctxmenu .cx-head { padding: 5px 14px; color: var(--muted); font-size: 11px; letter-spacing: .2px; }
 .ctxmenu button { display: flex; width: 100%; gap: 9px; align-items: center; background: transparent; border: 0; padding: 7px 14px; cursor: pointer; color: var(--text); text-align: left; }

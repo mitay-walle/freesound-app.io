@@ -472,6 +472,32 @@
   }
 
   const filterResetEntries = [];
+  const filterSectionResetButtons = new Map();
+
+  function filterValueEqual(a, b) {
+    return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  }
+
+  function filterResetEntryChanged(entry, current, defaults) {
+    return entry.keys.some((key) => !filterValueEqual(current[key], defaults[key]));
+  }
+
+  function refreshFilterResetVisibility(current = null) {
+    if (!filterResetEntries.length || !C.dur) return;
+    current = current || readFilters();
+    const defaults = defaultFilters();
+
+    filterResetEntries.forEach((entry) => {
+      const changed = filterResetEntryChanged(entry, current, defaults);
+      entry.changed = changed;
+      if (entry.button) entry.button.classList.toggle('hidden', !changed);
+    });
+
+    filterSectionResetButtons.forEach((button, section) => {
+      const changed = filterResetEntries.some((entry) => entry.section === section && entry.changed);
+      button.classList.toggle('hidden', !changed);
+    });
+  }
 
   function afterFilterReset() {
     updateFilterPreview();
@@ -490,14 +516,15 @@
     return button;
   }
 
-  function registerFilterReset(id, reset, { visible = true } = {}) {
+  function registerFilterReset(id, keys, reset, { visible = true } = {}) {
     const target = $('#' + id);
     if (!target) return;
-    const entry = { id, target, reset };
+    const entry = { id, keys: Array.isArray(keys) ? keys : [keys], target, section: target.closest('details.fgroup'), reset, button: null, changed: false };
     filterResetEntries.push(entry);
     if (!visible) return;
 
-    const button = createFilterResetButton('filter-reset-field', 'Сбросить поле к значению по умолчанию');
+    const button = createFilterResetButton('filter-reset-field hidden', 'Сбросить поле к значению по умолчанию');
+    entry.button = button;
     button.dataset.resetTarget = id;
     button.addEventListener('click', (event) => {
       event.preventDefault();
@@ -529,53 +556,55 @@
   function setupFilterResetButtons() {
     filterResetEntries.length = 0;
 
-    registerFilterReset('f_exclude', () => setVal('#f_exclude', ''));
-    registerFilterReset('f_tagsInc', () => chips.inc.set([]));
-    registerFilterReset('c_tagsMode', () => C.tagsMode.set('all'));
-    registerFilterReset('f_tagsExc', () => chips.exc.set([]));
-    registerFilterReset('f_cat', () => { setVal('#f_cat', ''); fillSubcats(); });
-    registerFilterReset('f_subcat', () => setVal('#f_subcat', ''));
-    registerFilterReset('c_types', () => C.types.set([]));
-    registerFilterReset('c_channels', () => C.channels.set(''));
-    registerFilterReset('c_sr', () => C.sr.set([]));
-    registerFilterReset('c_bd', () => C.bd.set([]));
-    registerFilterReset('c_size', () => C.size.set('', ''));
-    registerFilterReset('c_dur', () => C.dur.set('', ''));
-    registerFilterReset('c_lic', () => C.lic.set([]));
-    registerFilterReset('c_rating', () => C.rating.set(''));
-    registerFilterReset('c_numRatings', () => C.numRatings.set(''));
-    registerFilterReset('c_downloads', () => C.downloads.set(''));
-    registerFilterReset('f_after', () => setVal('#f_after', ''));
-    registerFilterReset('f_before', () => setVal('#f_before', ''));
-    registerFilterReset('f_user', () => setVal('#f_user', ''));
-    registerFilterReset('f_pack', () => setVal('#f_pack', ''));
-    registerFilterReset('c_geo', () => C.geo.set(''));
-    registerFilterReset('c_remix', () => C.remix.set(''));
-    registerFilterReset('c_wasRemixed', () => C.wasRemixed.set(''));
-    registerFilterReset('c_bpm', () => C.bpm.set('', ''));
-    registerFilterReset('c_note', () => C.note.set(''));
-    registerFilterReset('c_octave', () => C.octave.set(''));
-    registerFilterReset('c_noteConf', () => C.noteConf.set(''));
-    registerFilterReset('c_keyRoot', () => C.keyRoot.set(''));
-    registerFilterReset('c_keyMode', () => C.keyMode.set(''));
-    registerFilterReset('c_loop', () => C.loop.set(''));
-    registerFilterReset('c_single', () => C.single.set(''));
-    registerFilterReset('c_reverb', () => C.reverb.set(''));
-    registerFilterReset('c_loud', () => C.loud.set(''));
-    registerFilterReset('f_desc', () => { $('#f_desc').innerHTML = ''; }, { visible: false });
-    registerFilterReset('f_similarTo', () => setVal('#f_similarTo', ''));
-    registerFilterReset('f_simSpace', () => setVal('#f_simSpace', ''));
-    registerFilterReset('f_extra', () => setVal('#f_extra', ''));
-    registerFilterReset('f_manual', () => { $('#f_manual').checked = false; $('#f_manualText').disabled = true; });
-    registerFilterReset('f_manualText', () => setVal('#f_manualText', ''));
-    registerFilterReset('f_sortTarget', () => setVal('#f_sortTarget', ''));
-    registerFilterReset('f_weights', () => setVal('#f_weights', ''));
+    registerFilterReset('f_exclude', 'exclude', () => setVal('#f_exclude', ''));
+    registerFilterReset('f_tagsInc', 'tagsInc', () => chips.inc.set([]));
+    registerFilterReset('c_tagsMode', 'tagsMode', () => C.tagsMode.set('all'));
+    registerFilterReset('f_tagsExc', 'tagsExc', () => chips.exc.set([]));
+    registerFilterReset('f_cat', 'category', () => { setVal('#f_cat', ''); fillSubcats(); });
+    registerFilterReset('f_subcat', 'subcategory', () => setVal('#f_subcat', ''));
+    registerFilterReset('c_types', 'types', () => C.types.set([]));
+    registerFilterReset('c_channels', 'channels', () => C.channels.set(''));
+    registerFilterReset('c_sr', 'samplerates', () => C.sr.set([]));
+    registerFilterReset('c_bd', 'bitdepths', () => C.bd.set([]));
+    registerFilterReset('c_size', ['sizeMin', 'sizeMax'], () => C.size.set('', ''));
+    registerFilterReset('c_dur', ['durMin', 'durMax'], () => C.dur.set('', ''));
+    registerFilterReset('c_lic', 'licenses', () => C.lic.set([]));
+    registerFilterReset('c_rating', 'rating', () => C.rating.set(''));
+    registerFilterReset('c_numRatings', 'numRatings', () => C.numRatings.set(''));
+    registerFilterReset('c_downloads', 'downloads', () => C.downloads.set(''));
+    registerFilterReset('f_after', 'after', () => setVal('#f_after', ''));
+    registerFilterReset('f_before', 'before', () => setVal('#f_before', ''));
+    registerFilterReset('f_user', 'user', () => setVal('#f_user', ''));
+    registerFilterReset('f_pack', 'pack', () => setVal('#f_pack', ''));
+    registerFilterReset('c_geo', 'geo', () => C.geo.set(''));
+    registerFilterReset('c_remix', 'remix', () => C.remix.set(''));
+    registerFilterReset('c_wasRemixed', 'wasRemixed', () => C.wasRemixed.set(''));
+    registerFilterReset('c_bpm', ['bpmMin', 'bpmMax'], () => C.bpm.set('', ''));
+    registerFilterReset('c_note', 'note', () => C.note.set(''));
+    registerFilterReset('c_octave', 'octave', () => C.octave.set(''));
+    registerFilterReset('c_noteConf', 'noteConf', () => C.noteConf.set(''));
+    registerFilterReset('c_keyRoot', 'keyRoot', () => C.keyRoot.set(''));
+    registerFilterReset('c_keyMode', 'keyMode', () => C.keyMode.set(''));
+    registerFilterReset('c_loop', 'loop', () => C.loop.set(''));
+    registerFilterReset('c_single', 'single', () => C.single.set(''));
+    registerFilterReset('c_reverb', 'reverb', () => C.reverb.set(''));
+    registerFilterReset('c_loud', 'loudMin', () => C.loud.set(''));
+    registerFilterReset('f_desc', 'desc', () => { $('#f_desc').innerHTML = ''; }, { visible: false });
+    registerFilterReset('f_similarTo', 'similarTo', () => setVal('#f_similarTo', ''));
+    registerFilterReset('f_simSpace', 'simSpace', () => setVal('#f_simSpace', ''));
+    registerFilterReset('f_extra', 'extra', () => setVal('#f_extra', ''));
+    registerFilterReset('f_manual', 'manual', () => { $('#f_manual').checked = false; $('#f_manualText').disabled = true; });
+    registerFilterReset('f_manualText', 'manualText', () => setVal('#f_manualText', ''));
+    registerFilterReset('f_sortTarget', 'sortTarget', () => setVal('#f_sortTarget', ''));
+    registerFilterReset('f_weights', 'weights', () => setVal('#f_weights', ''));
 
+    filterSectionResetButtons.clear();
     $$('#filterForm details.fgroup').forEach((section) => {
       const summary = section.querySelector(':scope > summary');
       if (!summary) return;
       summary.classList.add('filter-summary-reset-host');
-      const button = createFilterResetButton('filter-reset-section', 'Сбросить всю секцию к значениям по умолчанию');
+      const button = createFilterResetButton('filter-reset-section hidden', 'Сбросить всю секцию к значениям по умолчанию');
+      filterSectionResetButtons.set(section, button);
       button.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -586,6 +615,7 @@
       });
       summary.appendChild(button);
     });
+    refreshFilterResetVisibility();
   }
 
   function buildFilter(f) {
@@ -641,6 +671,7 @@
     if (!C.dur) return;
     const f = readFilters();
     const s = buildFilter(f);
+    refreshFilterResetVisibility(f);
     $('#filterPreview').textContent = s || '—';
     $$('#filterForm .fgroup').forEach((g) => {
       const active = $$('input, select, textarea', g).some((el) => {
