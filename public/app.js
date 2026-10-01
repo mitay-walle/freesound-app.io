@@ -1004,10 +1004,17 @@
     const column = index % columns;
     let target = index;
 
-    if (key === 'ArrowLeft' && column > 0) target = index - 1;
-    else if (key === 'ArrowRight' && column < columns - 1 && index + 1 < S.currentList.length) target = index + 1;
-    else if (key === 'ArrowUp' && index - columns >= 0) target = index - columns;
-    else if (key === 'ArrowDown' && index + columns < S.currentList.length) target = index + columns;
+    if (key === 'ArrowLeft' && column > 0) {
+      target = index - 1;
+    } else if (key === 'ArrowRight' && column < columns - 1 && index + 1 < S.currentList.length) {
+      target = index + 1;
+    } else if (key === 'ArrowUp') {
+      const previousRowStart = index - column - columns;
+      if (previousRowStart >= 0) target = previousRowStart + Math.min(column, columns - 1);
+    } else if (key === 'ArrowDown') {
+      const nextRowStart = index - column + columns;
+      if (nextRowStart < S.currentList.length) target = Math.min(nextRowStart + column, S.currentList.length - 1);
+    }
 
     return target === index ? selectSound(S.currentList[index], false) : selectSound(S.currentList[target]);
   }
