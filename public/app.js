@@ -1891,7 +1891,7 @@
     $('#saveFilterPreset').addEventListener('click', saveCurrentFilterPreset);
     $('#deleteFilterPreset').addEventListener('click', () => deleteFilterPreset($('#filterPresets').value));
     $('#saveMainSearch').addEventListener('click', saveMainSearch);
-    $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); runSearch(1); });
+    $('#searchForm').addEventListener('submit', (e) => { e.preventDefault(); S.query = val('#q'); showTab('search'); runSearch(1); });
     $('#sort').addEventListener('change', (e) => { S.sort = e.target.value; localStorage.setItem('fs_sort', S.sort); if (S.results) runSearch(1); });
     $('#pageSize').addEventListener('change', (e) => { S.pageSize = Number(e.target.value); if (S.results) runSearch(1); });
     $('#groupByPack').addEventListener('change', (e) => { S.groupByPack = e.target.checked; if (S.results) runSearch(1); });
